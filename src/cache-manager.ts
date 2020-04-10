@@ -1,9 +1,9 @@
 import { fork } from 'child_process'
-import fetch from 'isomorphic-unfetch'
 import { clearInterval } from 'timers'
 import Cache from './cache'
 import { CacheConfig, CommandArg } from './types'
 import { log } from './utils'
+import http from 'http'
 
 // prevent same url being revalidated multiple times
 const queue = new Set<string>()
@@ -15,9 +15,9 @@ function revalidate(uri: string) {
   if (queue.has(url)) return
 
   queue.add(url)
-  fetch(url, { headers: { 'x-cache-status': 'stale' } }).then(() =>
+  http.get(url, { headers: { 'x-cache-status': 'stale' } }, () => {
     queue.delete(url)
-  )
+  })
 }
 
 function initPurge() {
