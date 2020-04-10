@@ -4,7 +4,7 @@ import { createCachedHandler } from './handler'
 
 export default async (argv: Argv) => {
   const port = (argv['--port'] as number) || 3000
-  const hostname = (argv['--hostname'] as string) || 'localhost'
+  const hostname = argv['--hostname'] as string
   const dir = (argv['dir'] as string) || '.'
   const app = require('next')({ dev: false, dir })
   const handler = app.getRequestHandler()
@@ -13,6 +13,6 @@ export default async (argv: Argv) => {
   createServer(async (req, res) => {
     await cached(req, res)
   }).listen(port, hostname, () => {
-    console.log(`> Server on http://${hostname}:${port}`)
+    console.log(`> Server on http://${hostname || 'localhost'}:${port}`)
   })
 }

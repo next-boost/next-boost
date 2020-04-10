@@ -33,8 +33,8 @@ function serveCache(
 
 function mergeConfig(hostname: string, port: number) {
   const conf: CacheConfig = {
-    hostname,
-    port,
+    hostname: hostname || 'localhost',
+    port: port || 3000,
     cache: { dbPath: './.cache.db', ttl: 3600, tbd: 3600 },
     rules: [
       {
