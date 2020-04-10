@@ -1,6 +1,6 @@
 {
   "name": "next-boost",
-  "version": "0.5.2",
+  "version": "0.5.3",
   "description": "Add a cache layer for next.js SSR pages. Use stale-while-revalidate to boost the performance.",
   "main": "dist/handler.js",
   "bin": {
@@ -10,7 +10,9 @@
     "build": "tsc",
     "prepublish": "rm -rf dist && npm run build"
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "author": {
     "name": "Rakuraku Jyo",
     "email": "jyo.rakuraku@gmail.com"
