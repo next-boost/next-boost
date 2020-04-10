@@ -2,11 +2,11 @@ import fs from 'fs'
 import http from 'http'
 import path from 'path'
 import { Transform } from 'stream'
-import { createGzip } from 'zlib'
+import { createGunzip, gzipSync } from 'zlib'
 import Cache from './cache'
 import Manager from './cache-manager'
 import { CacheConfig } from './types'
-import { log, shouldGzip, wrappedResponse } from './utils'
+import { isZipped, log, shouldZip, wrappedResponse } from './utils'
 
 function serveCache(
   cache: Cache,
@@ -23,11 +23,13 @@ function serveCache(
   stream.push(body)
   stream.push(null)
 
-  if (shouldGzip(req.headers['accept-encoding'])) {
+  res.removeHeader('content-length')
+  if (shouldZip(req)) {
     res.setHeader('content-encoding', 'gzip')
-    stream.pipe(createGzip()).pipe(res)
-  } else {
     stream.pipe(res)
+  } else {
+    res.removeHeader('content-encoding')
+    stream.pipe(createGunzip()).pipe(res)
   }
 }
 
@@ -117,6 +119,8 @@ export function createCachedHandler(
 
     res.on('close', () => {
       if (wrap && res.statusCode === 200) {
+        // save gzipped data
+        if (!isZipped(res)) buf.body = gzipSync(buf.body)
         cache.set('body:' + req.url, buf.body, ttl)
         cache.set('header:' + req.url, res.getHeaders(), ttl)
       }

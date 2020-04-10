@@ -1,7 +1,5 @@
 import chalk from 'chalk'
-import http from 'http'
-
-type WriteFn = (chunk: string | Buffer, encoding?: BufferEncoding) => void
+import http, { IncomingMessage, ServerResponse } from 'http'
 
 export function wrappedResponse(
   res: http.ServerResponse,
@@ -9,32 +7,39 @@ export function wrappedResponse(
 ) {
   const chunks = []
 
-  const push: WriteFn = (chunk, encoding) => {
+  const push = (...args: any[]) => {
+    let [chunk, encoding] = args
     if (!chunk) return
     if (!Buffer.isBuffer(chunk)) chunk = Buffer.from(chunk, encoding)
     chunks.push(chunk)
   }
 
-  return new Proxy(res, {
-    get(target, p) {
-      const orig = res[p]
-      if (p === 'write' || p === 'end') {
-        return <WriteFn>function (chunk, encoding) {
-          push(chunk, encoding)
-          if (p === 'end') {
-            cache.body = Buffer.concat(chunks)
-          }
-          return orig.apply(target, [chunk, encoding])
-        }
-      } else {
-        return orig
-      }
-    },
-  })
+  const _end = res.end
+  const _write = res.write
+
+  res.write = (...args: any[]) => {
+    push(...args)
+    return _write.apply(res, args)
+  }
+
+  res.end = (...args: any[]) => {
+    push(...args)
+    cache.body = Buffer.concat(chunks)
+    return _end.apply(res, args)
+  }
+
+  return res
 }
 
-export const shouldGzip = (header: string | string[]) => {
-  return header && header.indexOf('gzip') !== -1
+export const shouldZip = (req: IncomingMessage) => {
+  const field = req.headers['accept-encoding']
+  return field && field.indexOf('gzip') !== -1
+}
+
+export const isZipped = (res: ServerResponse) => {
+  const field = res.getHeader('content-encoding')
+  if (typeof field === 'number') return false
+  return field && field.indexOf('gzip') !== -1
 }
 
 export const log = (start: [number, number], status: string, msg: string) => {
