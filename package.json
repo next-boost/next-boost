@@ -1,0 +1,43 @@
+{
+  "name": "next-boost",
+  "version": "0.5.1",
+  "description": "Add a cache layer for next.js SSR pages. Use stale-while-revalidate to boost the performance.",
+  "main": "dist/handler.js",
+  "bin": {
+    "next-boost": "dist/cli.js"
+  },
+  "scripts": {
+    "build": "tsc"
+  },
+  "files": ["dist"],
+  "author": {
+    "name": "Rakuraku Jyo",
+    "email": "jyo.rakuraku@gmail.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rjyo/next-boost.git"
+  },
+  "homepage": "https://github.com/rjyo/next-boost",
+  "license": "MIT",
+  "dependencies": {
+    "better-sqlite3": "^6.0.1",
+    "chalk": "^4.0.0",
+    "isomorphic-unfetch": "^3.0.0"
+  },
+  "keywords": [
+    "next",
+    "nextjs",
+    "ssr",
+    "cache",
+    "stale-while-revalidate",
+    "react"
+  ],
+  "devDependencies": {
+    "@types/better-sqlite3": "^5.4.0",
+    "@types/node": "^13.11.1",
+    "@types/react": "^16.9.34",
+    "@types/react-dom": "^16.9.6",
+    "typescript": "^3.8.3"
+  }
+}
