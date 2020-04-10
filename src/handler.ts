@@ -1,7 +1,7 @@
 import fs from 'fs'
 import http from 'http'
 import path from 'path'
-import { Transform } from 'stream'
+import { PassThrough } from 'stream'
 import { createGunzip, gzipSync } from 'zlib'
 import Cache from './cache'
 import Manager from './cache-manager'
@@ -19,9 +19,8 @@ function serveCache(
     res.setHeader(k, headers[k])
   }
   res.statusCode = 200
-  const stream = new Transform()
-  stream.push(body)
-  stream.push(null)
+  const stream = new PassThrough()
+  stream.end(body)
 
   res.removeHeader('content-length')
   if (shouldZip(req)) {
