@@ -108,18 +108,24 @@ export function createCachedHandler(
     }
 
     await callback(req, wrap ? wrappedResponse(res, buf) : res)
-    const status = req.headers['x-cache-status'] === 'stale' ? 'rvl' : 'mis'
+    const status = wrap
+      ? req.headers['x-cache-status'] === 'stale'
+        ? 'rvl'
+        : 'mis'
+      : 'byp'
     log(start, status, req.url)
 
-    if (wrap && res.statusCode === 200) {
-      cache.set('body:' + req.url, buf.body, ttl)
-      cache.set('header:' + req.url, res.getHeaders(), ttl)
-    }
-    // This happens when browser send If-None-Match with etag
-    // and the contents are identical. Server will return no body.
-    // Here we use the revalidation process to cache the page later
-    if (wrap && res.statusCode === 304) {
-      manager.send({ action: 'revalidate', payload: req.url })
-    }
+    res.on('close', () => {
+      if (wrap && res.statusCode === 200) {
+        cache.set('body:' + req.url, buf.body, ttl)
+        cache.set('header:' + req.url, res.getHeaders(), ttl)
+      }
+      // This happens when browser send If-None-Match with etag
+      // and the contents are identical. Server will return no body.
+      // Here we use the revalidation process to cache the page later
+      if (wrap && res.statusCode === 304) {
+        manager.send({ action: 'revalidate', payload: req.url })
+      }
+    })
   }
 }
