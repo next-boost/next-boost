@@ -23,6 +23,7 @@ export function wrappedResponse(
 
   const push = (...args: any[]) => {
     const [chunk, encoding] = args
+    if (!chunk) return
     chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk, encoding))
   }
 
@@ -51,8 +52,7 @@ export function serveCache(
   const body = cache.get<Buffer>('body:' + req.url)
   const headers = cache.get<http.OutgoingHttpHeaders>('header:' + req.url)
   for (const k in headers) {
-    const header = headers[k]
-    if (header !== undefined) res.setHeader(k, header)
+    res.setHeader(k, headers[k])
   }
   res.statusCode = 200
   const stream = new PassThrough()

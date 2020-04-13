@@ -1,6 +1,6 @@
 import { expect } from 'chai'
-import { isZipped, shouldZip, log, wrappedResponse } from '../src/utils'
 import http from 'http'
+import { isZipped, log, shouldZip, wrappedResponse } from '../src/utils'
 import { sleep } from './cache.test'
 
 describe('utils', () => {
@@ -31,14 +31,14 @@ describe('utils', () => {
     log(start, 'hit', 'A')
   })
 
-  it('wrapped response', async () => {
+  it('wrapped response', () => {
     const req = new http.IncomingMessage(null)
     const res = new http.ServerResponse(req)
     const cache: { [key: string]: any } = {}
     const wrapped = wrappedResponse(res, cache)
     wrapped.write('Test')
     wrapped.write(Buffer.from('/X/'))
-    wrapped.end(' B')
-    expect(cache.body).to.deep.eq(Buffer.from('Test/X/ B'))
+    wrapped.end()
+    expect(cache.body).to.deep.eq(Buffer.from('Test/X/'))
   })
 })
