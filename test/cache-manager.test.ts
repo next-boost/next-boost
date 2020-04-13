@@ -28,5 +28,5 @@ describe('cache manager', () => {
     manager.send({ action: 'unknown', payload: conf }) // ignored
     manager.send({ action: 'revalidate', payload: url })
     manager.send({ action: 'revalidate', payload: url }) // ignored
-  })
+  }).timeout(5000)
 })
