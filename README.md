@@ -4,11 +4,11 @@
 
 `next-boost` is a middleware which adds a disk cache layer to your SSR applications. It was built originally for `next.js` SSR applications and can be used in any node.js `http.Server` based application.
 
-It implements [`stale-while-revalidate` styled cache](https://web.dev/stale-while-revalidate/). When an expired (`stale`) page is accessed, the cache will be served and at the same time, a background process will fetch the latest version (`revalidate`) of that page and save it to the cache.
+It implements a server-side cache in the manner of [stale-while-revalidate](https://web.dev/stale-while-revalidate/), When an expired (`stale`) page is accessed, the cache will be served and at the same time, a background process will fetch the latest version (`revalidate`) of that page and save it to the cache.
 
 There are 2 parameters to control the behavior of the cache:
 
-- `ttl (time-to-live)`: , which means after `ttl`, the cache will be revalidated, in seconds. Also `ttl` will be updated when a page is revalidated.
+- `ttl (time-to-live)`: After `ttl`, the cache will be revalidated. And a cached page's `ttl` will be updated when a page is revalidated.
 - `tbd (time-before-deletion)`: When a page is not hit again in `ttl + tbd` seconds, it will be completely remove from cache.
 
 ## Installation
@@ -19,7 +19,7 @@ $ npm install next-boost --save
 
 ## Basic Usage
 
-```javascript=
+```javascript
 const http = require('http')
 const { createCachedHandler } = require('next-boost')
 
