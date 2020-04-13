@@ -2,7 +2,7 @@
 
 import serve from './server'
 
-function help() {
+function help(argv?: string[]) {
   console.log(`
     Description
       Starts next.js application with stale-while-validate style cache.
@@ -19,12 +19,17 @@ function help() {
       --hostname, -H  Hostname on which to start the application
       --help, -h      Displays this message
   `)
-  process.exit(0)
+  if (require.main === module) {
+    process.exit(0)
+  }
+  if (argv) {
+    throw new Error(`Failed to parse arguments ${argv.join(' ')}`)
+  }
 }
 
 export type Argv = { [key: string]: boolean | number | string }
 
-function main(raw: string[]) {
+export function parse(raw: string[]) {
   const types: { [key: string]: any } = {
     '--help': Boolean,
     '--port': Number,
@@ -47,14 +52,14 @@ function main(raw: string[]) {
         argv['dir'] = arg
         continue
       } else {
-        return help()
+        return help(raw)
       }
     }
     if (type === Boolean) {
       argv[arg] = true
       continue
     }
-    if (++i >= raw.length) return help()
+    if (++i >= raw.length) return help(raw)
     const v = raw[i]
     if (type === Number) argv[arg] = parseInt(v, 10)
     else if (type === String) argv[arg] = v
@@ -62,7 +67,10 @@ function main(raw: string[]) {
 
   if (argv['--help']) return help()
 
-  serve(argv)
+  return argv
 }
 
-main(process.argv)
+if (require.main === module) {
+  const argv = parse(process.argv)
+  serve(argv || {})
+}
