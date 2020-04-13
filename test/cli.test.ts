@@ -1,5 +1,5 @@
-import { parse } from '../src/cli'
 import { expect } from 'chai'
+import { parse } from '../src/cli'
 
 describe('cli parser', () => {
   it('no params', () => {

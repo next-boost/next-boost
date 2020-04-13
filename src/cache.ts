@@ -17,16 +17,19 @@ class Cache {
   db: Database
   ttl = 3600 // time to live
   tbd = 3600 // time before deletion
+  dbPath = null
 
   constructor({ dbPath, ttl, tbd }: CacheOptions = {}) {
-    const db = new SQLite3(dbPath || '/tmp/.cache.db')
+    this.dbPath = dbPath || '/tmp/.cache.db'
+    if (ttl) this.ttl = ttl
+    if (tbd) this.tbd = tbd
+
+    const db = new SQLite3(this.dbPath)
     db.pragma('journal_mode = WAL')
     for (const s of DDL.trim().split('\n')) {
       db.prepare(s).run()
     }
     this.db = db
-    if (ttl) this.ttl = ttl
-    if (tbd) this.tbd = tbd
   }
 
   set = <T>(key: string, value: T, ttlSeconds?: number) => {
@@ -41,7 +44,7 @@ class Cache {
     insert.run({
       key,
       value: Buffer.isBuffer(value) ? value : JSON.stringify(value),
-      valid: Math.floor(new Date().getTime() / 1000) + ttlSeconds,
+      valid: new Date().getTime() / 1000 + ttlSeconds,
     })
   }
 
