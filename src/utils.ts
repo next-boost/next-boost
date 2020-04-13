@@ -1,4 +1,5 @@
 import chalk from 'chalk'
+import cp from 'child_process'
 import fs from 'fs'
 import http from 'http'
 import path from 'path'
@@ -128,4 +129,10 @@ export function mergeConfig(basic?: BasicConfig) {
     }
   }
   return conf
+}
+
+export function fork(modulePath: string) {
+  const isTest = process.env.NODE_ENV === 'test'
+  const options = isTest ? { execArgv: ['-r', 'ts-node/register'] } : null
+  return cp.fork(modulePath, [], options)
 }

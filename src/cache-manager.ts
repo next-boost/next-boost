@@ -1,8 +1,7 @@
-import { fork } from 'child_process'
 import http from 'http'
 import Cache from './cache'
 import { CacheConfig, CommandArg } from './types'
-import { log } from './utils'
+import { fork, log } from './utils'
 
 // prevent same url being revalidated multiple times
 const queue = new Set<string>()
