@@ -1,37 +1,11 @@
 import fs from 'fs'
 import http from 'http'
 import path from 'path'
-import { PassThrough } from 'stream'
-import { createGunzip, gzipSync } from 'zlib'
+import { gzipSync } from 'zlib'
 import Cache from './cache'
 import Manager from './cache-manager'
 import { CacheConfig } from './types'
-import { isZipped, log, shouldZip, wrappedResponse } from './utils'
-
-function serveCache(
-  cache: Cache,
-  req: http.IncomingMessage,
-  res: http.ServerResponse
-) {
-  const body = cache.get<Buffer>('body:' + req.url)
-  const headers = cache.get<http.OutgoingHttpHeaders>('header:' + req.url)
-  for (const k in headers) {
-    const header = headers[k]
-    if (header !== undefined) res.setHeader(k, header)
-  }
-  res.statusCode = 200
-  const stream = new PassThrough()
-  stream.end(body)
-
-  res.removeHeader('content-length')
-  if (shouldZip(req)) {
-    res.setHeader('content-encoding', 'gzip')
-    stream.pipe(res)
-  } else {
-    res.removeHeader('content-encoding')
-    stream.pipe(createGunzip()).pipe(res)
-  }
-}
+import { isZipped, log, serveCache, wrappedResponse } from './utils'
 
 function mergeConfig(hostname?: string, port?: number) {
   const conf: CacheConfig = {
