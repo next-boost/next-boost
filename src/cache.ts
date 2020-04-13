@@ -20,7 +20,7 @@ class Cache {
   dbPath = null
 
   constructor({ dbPath, ttl, tbd }: CacheOptions = {}) {
-    this.dbPath = dbPath || '/tmp/.cache.db'
+    this.dbPath = dbPath || './.cache.db'
     if (ttl) this.ttl = ttl
     if (tbd) this.tbd = tbd
 

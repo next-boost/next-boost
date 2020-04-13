@@ -4,7 +4,7 @@
   "description": "Add a cache layer for next.js SSR pages. Use stale-while-revalidate to boost the performance.",
   "main": "dist/handler.js",
   "bin": {
-    "next-boost": "dist/next-boost.js"
+    "next-boost": "dist/next/server.js"
   },
   "scripts": {
     "build": "tsc",

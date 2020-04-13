@@ -1,6 +1,12 @@
 import { expect } from 'chai'
 import http from 'http'
-import { isZipped, log, shouldZip, wrappedResponse } from '../src/utils'
+import {
+  isZipped,
+  log,
+  shouldZip,
+  wrappedResponse,
+  mergeConfig,
+} from '../src/utils'
 import { sleep } from './cache.test'
 
 describe('utils', () => {
@@ -40,5 +46,48 @@ describe('utils', () => {
     wrapped.write(Buffer.from('/X/'))
     wrapped.end()
     expect(cache.body).to.deep.eq(Buffer.from('Test/X/'))
+  })
+
+  it('merge config / no config file', () => {
+    const conf = mergeConfig()
+    expect(conf.hostname).to.eq('localhost')
+    expect(conf.port).to.eq(3000)
+    expect(conf.rules.length).to.eq(1)
+    expect(conf.rules[0].regex).to.eq('.*')
+    expect(conf.filename).to.eq('.next-boost.js')
+  })
+
+  it('merge config / with basic config', () => {
+    const conf = mergeConfig({
+      hostname: 'abc.com',
+      filename: '.next-boost.sample.js',
+    })
+    expect(conf.hostname).to.eq('abc.com')
+    expect(conf.port).to.eq(3000)
+    expect(conf.cache.dbPath).to.eq('/tmp/jinja.cache.db')
+    expect(conf.rules.length).to.eq(2)
+    expect(conf.rules[0].regex).to.eq('^/blog.*')
+    expect(conf.filename).to.eq('.next-boost.sample.js')
+  })
+
+  it('merge config / conf file with no rules and no cache', () => {
+    const conf = mergeConfig({
+      hostname: 'abc.com',
+      filename: './test/fixtures/conf1.js',
+    })
+    expect(conf.hostname).to.eq('abc.com')
+    expect(conf.port).to.eq(3000)
+    expect(conf.cache.dbPath).to.eq('./.cache.db')
+    expect(conf.rules.length).to.eq(1)
+    expect(conf.rules[0].regex).to.eq('.*')
+    expect(conf.filename).to.eq('./test/fixtures/conf1.js')
+  })
+
+  it('merge config / conf file error', () => {
+    expect(() =>
+      mergeConfig({
+        filename: './test/fixtures/conf2.txt',
+      })
+    ).to.throw(/Failed to load/)
   })
 })

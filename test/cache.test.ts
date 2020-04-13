@@ -18,7 +18,7 @@ describe('disk cache with ttl', () => {
     const cache = new Cache({ ttl: 100, tbd: 300 })
     expect(cache.ttl).to.eq(100)
     expect(cache.tbd).to.eq(300)
-    expect(cache.dbPath).to.eq('/tmp/.cache.db')
+    expect(cache.dbPath).to.eq('./.cache.db')
   })
 
   it('set / get', () => {

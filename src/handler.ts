@@ -1,52 +1,24 @@
-import fs from 'fs'
 import http from 'http'
-import path from 'path'
 import { gzipSync } from 'zlib'
 import Cache from './cache'
 import Manager from './cache-manager'
-import { CacheConfig } from './types'
-import { isZipped, log, serveCache, wrappedResponse } from './utils'
-
-function mergeConfig(hostname?: string, port?: number) {
-  const conf: CacheConfig = {
-    hostname: hostname || 'localhost',
-    port: port || 3000,
-    cache: { dbPath: './.cache.db', ttl: 3600, tbd: 3600 },
-    rules: [
-      {
-        regex: '.*',
-        ttl: 3600,
-      },
-    ],
-  }
-
-  const configFile = path.resolve('.next-boost.js')
-  if (fs.existsSync(configFile)) {
-    try {
-      const f = require(configFile) as CacheConfig
-      if (f.cache) conf.cache = Object.assign(conf.cache, f.cache)
-      if (f.rules) conf.rules = f.rules
-      console.log('> Loaded next-boost config from .next-boost.js')
-    } catch (error) {
-      console.log(error)
-      console.error('Failed to read next-boost config %s', configFile)
-      process.exit(1)
-    }
-  }
-  return conf
-}
+import { BasicConfig } from './types'
+import {
+  isZipped,
+  log,
+  mergeConfig,
+  serveCache,
+  wrappedResponse,
+} from './utils'
 
 export function createCachedHandler(
   handler: (
     req: http.IncomingMessage,
     res: http.ServerResponse
   ) => Promise<void>,
-  options?: {
-    hostname?: string
-    port?: number
-  }
+  options?: BasicConfig
 ): http.RequestListener {
-  const conf = mergeConfig(options?.hostname, options?.port)
+  const conf = mergeConfig(options)
 
   // the cache
   const cache = new Cache(conf.cache)

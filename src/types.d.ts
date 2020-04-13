@@ -3,15 +3,19 @@ export interface URLCacheRule {
   ttl: number
 }
 
-export interface CacheConfig {
-  hostname: string
-  port: number
+export interface CacheConfig extends BasicConfig {
   cache: {
     ttl?: number
     tbd?: number
     dbPath?: string
   }
   rules?: Array<URLCacheRule>
+}
+
+interface BasicConfig {
+  hostname?: string
+  port?: number
+  filename?: string
 }
 
 export interface CommandArg {

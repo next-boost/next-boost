@@ -1,10 +1,11 @@
+#!/usr/bin/env node
 import http from 'http'
-import { Argv } from './cli'
-import { createCachedHandler } from './handler'
+import { Argv, parse } from '../cli'
+import { createCachedHandler } from '../handler'
 
-export default async (argv: Argv) => {
+const serve = async (argv: Argv) => {
   const port = (argv['--port'] as number) || 3000
-  const hostname = argv['--hostname'] as string
+  const hostname = (argv['--hostname'] as string) || 'localhost'
   const dir = (argv['dir'] as string) || '.'
   const app = require('next')({ dev: false, dir })
   const handler = app.getRequestHandler()
@@ -13,6 +14,11 @@ export default async (argv: Argv) => {
   await app.prepare()
   const server = new http.Server(cached)
   server.listen(port, hostname, () => {
-    console.log(`> Server on http://${hostname || 'localhost'}:${port}`)
+    console.log(`> Server on http://${hostname}:${port}`)
   })
+}
+
+if (require.main === module) {
+  const argv = parse(process.argv)
+  if (argv) serve(argv)
 }

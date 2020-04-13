@@ -1,8 +1,11 @@
 import chalk from 'chalk'
+import fs from 'fs'
 import http from 'http'
+import path from 'path'
 import { PassThrough } from 'stream'
 import { createGunzip } from 'zlib'
 import Cache from './cache'
+import { BasicConfig, CacheConfig } from './types'
 
 export function shouldZip(req: http.IncomingMessage): boolean {
   const field = req.headers['accept-encoding']
@@ -96,4 +99,33 @@ export function log(
     color2(status.padEnd(3)),
     msg
   )
+}
+
+export function mergeConfig(basic?: BasicConfig) {
+  const conf: CacheConfig = {
+    hostname: 'localhost',
+    port: 3000,
+    cache: { dbPath: './.cache.db', ttl: 3600, tbd: 3600 },
+    rules: [
+      {
+        regex: '.*',
+        ttl: 3600,
+      },
+    ],
+  }
+  Object.assign(conf, basic)
+
+  if (!conf.filename) conf.filename = '.next-boost.js'
+  const configFile = path.resolve(conf.filename)
+  if (fs.existsSync(configFile)) {
+    try {
+      const f = require(configFile) as CacheConfig
+      if (f.cache) conf.cache = Object.assign(conf.cache, f.cache)
+      if (f.rules) conf.rules = f.rules
+      console.log('> Loaded next-boost config from %s', conf.filename)
+    } catch (error) {
+      throw new Error(`Failed to load ${conf.filename}`)
+    }
+  }
+  return conf
 }

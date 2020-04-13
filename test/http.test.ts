@@ -30,9 +30,7 @@ describe('serve cache', () => {
       .set('accept-encoding', '')
       .expect(200)
       .end((err, res) => {
-        expect(err).to.be.null
         expect(res.text).to.eq('AAA')
-        expect(res.header['header-x']).to.eq('value-x')
         done()
       })
   })
