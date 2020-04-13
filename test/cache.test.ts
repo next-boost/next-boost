@@ -2,7 +2,7 @@ import { expect } from 'chai'
 import fs from 'fs'
 import Cache from '../src/cache'
 
-const sleep = async (t: number) => {
+export const sleep = async (t: number) => {
   return new Promise((resolve) => {
     setTimeout(resolve, t)
   })

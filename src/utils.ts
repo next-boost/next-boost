@@ -9,7 +9,6 @@ export function wrappedResponse(
 
   const push = (...args: any[]) => {
     const [chunk, encoding] = args
-    if (!chunk) return
     chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk, encoding))
   }
 
@@ -50,9 +49,12 @@ export const log = (
   const ms = ns / 1000000
 
   let color = chalk.blue
-  if (secs > 0) color = chalk.red
-  else if (ms > 100) color = chalk.yellow
-  else if (ms < 10) color = chalk.green
+  if (secs > 0) {
+    color = chalk.red
+  } else {
+    if (ms > 100) color = chalk.yellow
+    else color = chalk.green
+  }
 
   let color2 = chalk.gray
   if (status === 'mis') color2 = chalk.yellow
