@@ -1,9 +1,8 @@
 import { fork } from 'child_process'
-import { clearInterval } from 'timers'
+import http from 'http'
 import Cache from './cache'
 import { CacheConfig, CommandArg } from './types'
 import { log } from './utils'
-import http from 'http'
 
 // prevent same url being revalidated multiple times
 const queue = new Set<string>()
@@ -38,10 +37,6 @@ process.on('message', (cmd: CommandArg) => {
     conf = cmd.payload
     initPurge()
   }
-})
-
-process.on('beforeExit', () => {
-  clearInterval(interval)
 })
 
 export default () => fork(__filename)
