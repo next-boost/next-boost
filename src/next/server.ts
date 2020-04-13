@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import http from 'http'
 import { Argv, parse } from '../cli'
-import { createCachedHandler } from '../handler'
+import CachedHandler from '../handler'
 
 const serve = async (argv: Argv) => {
   const port = (argv['--port'] as number) || 3000
@@ -9,12 +9,17 @@ const serve = async (argv: Argv) => {
   const dir = (argv['dir'] as string) || '.'
   const app = require('next')({ dev: false, dir })
   const handler = app.getRequestHandler()
-  const cached = createCachedHandler(handler, { hostname, port })
+  const cached = new CachedHandler(handler, { hostname, port })
 
   await app.prepare()
-  const server = new http.Server(cached)
+  const server = new http.Server(cached.handler)
   server.listen(port, hostname, () => {
     console.log(`> Server on http://${hostname}:${port}`)
+  })
+  process.on('SIGTERM', () => {
+    console.log('> Shutting down...')
+    cached.close()
+    server.close()
   })
 }
 
