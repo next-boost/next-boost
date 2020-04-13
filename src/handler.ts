@@ -57,16 +57,15 @@ export function createCachedHandler(
       }
     }
 
-    await handler(req, wrap ? wrappedResponse(res, buf) : res)
-    const status = wrap
-      ? req.headers['x-cache-status'] === 'stale'
-        ? 'rvl'
-        : 'mis'
-      : 'byp'
-    log(start, status, req.url)
-
     res.on('close', () => {
-      if (wrap && res.statusCode === 200) {
+      const status = wrap
+        ? req.headers['x-cache-status'] === 'stale'
+          ? 'rvl'
+          : 'mis'
+        : 'byp'
+      log(start, status, req.url)
+
+      if (wrap && res.statusCode === 200 && buf.body) {
         // save gzipped data
         if (!isZipped(res)) buf.body = gzipSync(buf.body)
         cache.set('body:' + req.url, buf.body, ttl)
@@ -79,5 +78,7 @@ export function createCachedHandler(
         manager.send({ action: 'revalidate', payload: req.url })
       }
     })
+
+    await handler(req, wrap ? wrappedResponse(res, buf) : res)
   }
 }
