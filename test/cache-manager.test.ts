@@ -25,6 +25,7 @@ describe('cache manager', () => {
     conf.cache.tbd = 0.5
     manager.send({ action: 'init', payload: conf })
     manager.send({ action: 'init', payload: conf }) // ignored
+    manager.send({ action: 'unknown', payload: conf }) // ignored
     manager.send({ action: 'revalidate', payload: url })
     manager.send({ action: 'revalidate', payload: url }) // ignored
   })
