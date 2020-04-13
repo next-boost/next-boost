@@ -1,6 +1,6 @@
 # next-boost
 
-[![Coverage Status](https://coveralls.io/repos/github/rjyo/next-boost/badge.svg?branch=master)](https://coveralls.io/github/rjyo/next-boost?branch=master)
+[![Coverage Status](https://coveralls.io/repos/github/rjyo/next-boost/badge.svg?branch=master&service=github)](https://coveralls.io/github/rjyo/next-boost?branch=master)
 
 the purpose for this package
 
