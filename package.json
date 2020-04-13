@@ -10,7 +10,7 @@
     "build": "tsc",
     "prepublishOnly": "rm -rf dist && npm run build",
     "lint": "eslint src/*.ts test/*.ts",
-    "test": "mocha --exit --require ts-node/register test/**/*.test.ts",
+    "test": "mocha --require ts-node/register test/**/*.test.ts",
     "test-cov": "nyc mocha test/*.test.ts"
   },
   "files": [
