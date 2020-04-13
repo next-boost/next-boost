@@ -1,14 +1,12 @@
 import { expect } from 'chai'
-import { fork } from 'child_process'
 import http from 'http'
 import { AddressInfo } from 'net'
+import Manger from '../src/cache-manager'
 import { mergeConfig } from '../src/utils'
 
 describe('cache manager', () => {
   it('init and revalidate', (done) => {
-    const manager = fork('./src/cache-manager.ts', [], {
-      execArgv: ['-r', 'ts-node/register'],
-    })
+    const manager = Manger()
     const url = '/aaa'
     const server = new http.Server((req, res) => {
       res.end()
