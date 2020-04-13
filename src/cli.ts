@@ -25,12 +25,12 @@ function help() {
 export type Argv = { [key: string]: boolean | number | string }
 
 function main(raw: string[]) {
-  const types = {
+  const types: { [key: string]: any } = {
     '--help': Boolean,
     '--port': Number,
     '--hostname': String,
   }
-  const alias = {
+  const alias: { [key: string]: string } = {
     '-h': '--help',
     '-p': '--port',
     '-H': '--hostname',

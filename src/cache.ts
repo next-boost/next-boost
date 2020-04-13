@@ -45,7 +45,7 @@ class Cache {
     })
   }
 
-  get = <T>(key: string, defaultValue?: T): T => {
+  get = <T>(key: string, defaultValue?: T): T | undefined => {
     const rv = this.db.prepare('SELECT value FROM cache WHERE key = ?').get(key)
     if (!rv) return defaultValue
     return Buffer.isBuffer(rv.value) ? rv.value : (JSON.parse(rv.value) as T)

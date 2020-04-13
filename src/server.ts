@@ -1,4 +1,4 @@
-import { createServer } from 'http'
+import http from 'http'
 import { Argv } from './cli'
 import { createCachedHandler } from './handler'
 
@@ -8,11 +8,11 @@ export default async (argv: Argv) => {
   const dir = (argv['dir'] as string) || '.'
   const app = require('next')({ dev: false, dir })
   const handler = app.getRequestHandler()
-  const cached = createCachedHandler(hostname, port, handler)
+  const cached = createCachedHandler(handler, { hostname, port })
 
-  createServer(async (req, res) => {
-    await cached(req, res)
-  }).listen(port, hostname, () => {
+  await app.prepare()
+  const server = new http.Server(cached)
+  server.listen(port, hostname, () => {
     console.log(`> Server on http://${hostname || 'localhost'}:${port}`)
   })
 }

@@ -16,7 +16,8 @@ function serveCache(
   const body = cache.get<Buffer>('body:' + req.url)
   const headers = cache.get<http.OutgoingHttpHeaders>('header:' + req.url)
   for (const k in headers) {
-    res.setHeader(k, headers[k])
+    const header = headers[k]
+    if (header !== undefined) res.setHeader(k, header)
   }
   res.statusCode = 200
   const stream = new PassThrough()
@@ -32,7 +33,7 @@ function serveCache(
   }
 }
 
-function mergeConfig(hostname: string, port: number) {
+function mergeConfig(hostname?: string, port?: number) {
   const conf: CacheConfig = {
     hostname: hostname || 'localhost',
     port: port || 3000,
@@ -62,14 +63,16 @@ function mergeConfig(hostname: string, port: number) {
 }
 
 export function createCachedHandler(
-  hostname: string,
-  port: number,
-  callback: (
+  handler: (
     req: http.IncomingMessage,
     res: http.ServerResponse
-  ) => Promise<void>
-) {
-  const conf = mergeConfig(hostname, port)
+  ) => Promise<void>,
+  options?: {
+    hostname?: string
+    port?: number
+  }
+): http.RequestListener {
+  const conf = mergeConfig(options?.hostname, options?.port)
 
   // the cache
   const cache = new Cache(conf.cache)
@@ -79,7 +82,7 @@ export function createCachedHandler(
   const manager = Manager()
   manager.send({ action: 'init', payload: conf })
 
-  return async (req: http.IncomingMessage, res: http.ServerResponse) => {
+  return async function (req, res) {
     const buf: { [key: string]: any } = {}
     let wrap = false
     const start = process.hrtime()
@@ -99,16 +102,16 @@ export function createCachedHandler(
       }
     }
 
-    let ttl: number = null
-    for (let rule of conf.rules) {
-      if (new RegExp(rule.regex).test(req.url)) {
+    let ttl: number
+    for (const rule of conf.rules || []) {
+      if (req.url && new RegExp(rule.regex).test(req.url)) {
         wrap = true
         ttl = rule.ttl
         break
       }
     }
 
-    await callback(req, wrap ? wrappedResponse(res, buf) : res)
+    await handler(req, wrap ? wrappedResponse(res, buf) : res)
     const status = wrap
       ? req.headers['x-cache-status'] === 'stale'
         ? 'rvl'
