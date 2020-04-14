@@ -1,4 +1,4 @@
-[![Coverage Status](https://coveralls.io/repos/github/rjyo/next-boost/badge.svg?branch=master&service=github)](https://coveralls.io/github/rjyo/next-boost?branch=master) [![Maintainability](https://api.codeclimate.com/v1/badges/358f0b96e0b3b5cc55ab/maintainability)](https://codeclimate.com/github/rjyo/next-boost/maintainability)
+![CI](https://github.com/rjyo/next-boost/workflows/CI/badge.svg) [![Coverage Status](https://coveralls.io/repos/github/rjyo/next-boost/badge.svg?branch=master&service=github)](https://coveralls.io/github/rjyo/next-boost?branch=master) [![Maintainability](https://api.codeclimate.com/v1/badges/358f0b96e0b3b5cc55ab/maintainability)](https://codeclimate.com/github/rjyo/next-boost/maintainability)
 
 # next-boost
 
@@ -71,7 +71,7 @@ The server log will be something like:
 After the server started, try to access the server serveral times with your browser or `curl http://localhost:3000`. With the cache layer, only the first response is sluggish and the rests are super fast.
 
 ```bash
-2s6.9ms | miss  : /      # The first one takes more than 2 seconds
+2s6.9ms | miss  : /    # The first one takes more than 2 seconds
   0.1ms | hit   : /    # The second request only takes 0.1ms
   0.1ms | stale : /    # As we set ttl to 1 seconds, revalidating process has kicked in
   0.1ms | stale : /    # Until updated, the stale result is always served
