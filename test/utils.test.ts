@@ -27,10 +27,7 @@ describe('utils', () => {
 
   it('log with hrtime', async () => {
     const start = process.hrtime()
-    log(start, 'mis', 'A')
-    log(start, 'rvl', 'A')
-    log(start, 'prg', 'A')
-    log(start, 'hit', 'A')
+    log(start, 'miss', 'A')
     await sleep(100)
     log(start, 'hit', 'A')
     await sleep(1000)
@@ -55,6 +52,17 @@ describe('utils', () => {
     expect(conf.rules.length).to.eq(1)
     expect(conf.rules[0].regex).to.eq('.*')
     expect(conf.filename).to.eq('.next-boost.js')
+  })
+
+  it('merge config / default changed', () => {
+    const conf = mergeConfig({ cache: { ttl: 1 } })
+    expect(conf.hostname).to.eq('localhost')
+    expect(conf.port).to.eq(3000)
+    expect(conf.rules.length).to.eq(1)
+    expect(conf.rules[0].regex).to.eq('.*')
+    expect(conf.filename).to.eq('.next-boost.js')
+    expect(conf.cache.ttl).to.eq(1)
+    expect(conf.cache.dbPath).to.eq('./.cache.db')
   })
 
   it('merge config / with basic config', () => {

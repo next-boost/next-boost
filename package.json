@@ -45,8 +45,7 @@
   "homepage": "https://github.com/rjyo/next-boost",
   "license": "MIT",
   "dependencies": {
-    "better-sqlite3": "^6.0.1",
-    "chalk": "^4.0.0"
+    "better-sqlite3": "^6.0.1"
   },
   "peerDependencies": {
     "next": "^9.0.0"

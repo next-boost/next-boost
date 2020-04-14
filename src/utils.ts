@@ -1,4 +1,3 @@
-import chalk from 'chalk'
 import cp from 'child_process'
 import fs from 'fs'
 import http from 'http'
@@ -6,7 +5,7 @@ import path from 'path'
 import { PassThrough } from 'stream'
 import { createGunzip } from 'zlib'
 import Cache from './cache'
-import { BasicConfig, CacheConfig } from './types'
+import { CacheConfig } from './types'
 
 export function shouldZip(req: http.IncomingMessage): boolean {
   const field = req.headers['accept-encoding']
@@ -80,29 +79,11 @@ export function log(
   const [secs, ns] = process.hrtime(start)
   const ms = ns / 1000000
 
-  let color = chalk.blue
-  if (secs > 0) {
-    color = chalk.red
-  } else {
-    if (ms > 100) color = chalk.yellow
-    else color = chalk.green
-  }
-
-  let color2 = chalk.gray
-  if (status === 'mis') color2 = chalk.yellow
-  else if (status === 'rvl') color2 = chalk.blue
-  else if (status === 'prg') color2 = chalk.red
-
   const time = `${secs > 0 ? secs + 's' : ''}${ms.toFixed(1)}ms`
-  console.log(
-    `%s | %s: %s`,
-    color(time.padStart(7)),
-    color2(status.padEnd(3)),
-    msg
-  )
+  console.log(`%s | %s: %s`, time.padStart(7), status.padEnd(6), msg)
 }
 
-export function mergeConfig(basic?: BasicConfig) {
+export function mergeConfig(c: CacheConfig = {}) {
   const conf: CacheConfig = {
     hostname: 'localhost',
     port: 3000,
@@ -114,20 +95,25 @@ export function mergeConfig(basic?: BasicConfig) {
       },
     ],
   }
-  Object.assign(conf, basic)
 
-  if (!conf.filename) conf.filename = '.next-boost.js'
-  const configFile = path.resolve(conf.filename)
+  if (!c.filename) c.filename = '.next-boost.js'
+  const configFile = path.resolve(c.filename)
   if (fs.existsSync(configFile)) {
     try {
       const f = require(configFile) as CacheConfig
-      if (f.cache) conf.cache = Object.assign(conf.cache, f.cache)
-      if (f.rules) conf.rules = f.rules
-      console.log('> Loaded next-boost config from %s', conf.filename)
+      c.cache = Object.assign(f.cache || {}, c.cache || {})
+      c = Object.assign(f, c)
+      console.log('> Loaded next-boost config from %s', c.filename)
     } catch (error) {
-      throw new Error(`Failed to load ${conf.filename}`)
+      throw new Error(`Failed to load ${c.filename}`)
     }
   }
+
+  // deep merge cache and remove it
+  Object.assign(conf.cache, c.cache)
+  delete c.cache
+  Object.assign(conf, c)
+
   return conf
 }
 
