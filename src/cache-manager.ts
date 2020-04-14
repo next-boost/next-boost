@@ -21,12 +21,13 @@ function revalidate(uri: string) {
 function initPurge() {
   if (interval) return
   const cache = new Cache(conf.cache)
-  console.log('> Cache manager inited, will start to purge in %ds', cache.tbd)
+  const tbd = Math.min(cache.tbd, 86400)
+  console.log('> Cache manager inited, will start to purge in %ds', tbd)
   interval = setInterval(() => {
     const start = process.hrtime()
     const rv = cache.purge()
     log(start, 'prg', `purged and vacuum all ${rv.changes} inactive cache`)
-  }, Math.min(cache.tbd, 86400) * 1000)
+  }, tbd * 1000)
 }
 
 process.on('message', (cmd: CommandArg) => {
