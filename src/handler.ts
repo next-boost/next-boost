@@ -3,7 +3,7 @@ import http from 'http'
 import { gzipSync } from 'zlib'
 import Cache from './cache'
 import Manager from './cache-manager'
-import { BasicConfig } from './types'
+import { CacheConfig } from './types'
 import {
   isZipped,
   log,
@@ -22,7 +22,7 @@ export default class CachedHandler {
       req: http.IncomingMessage,
       res: http.ServerResponse
     ) => Promise<void> | void,
-    options?: BasicConfig
+    options?: CacheConfig
   ) {
     const conf = mergeConfig(options)
 
@@ -47,9 +47,11 @@ export default class CachedHandler {
         if (status !== 'miss') {
           if (status === 'stale') {
             this.manager.send({ action: 'revalidate', payload: req.url })
+            log(start, 'stale', req.url)
+          } else {
+            log(start, 'hit', req.url)
           }
           serveCache(this.cache, req, res)
-          log(start, 'hit', req.url)
           return
         }
       }
@@ -66,9 +68,9 @@ export default class CachedHandler {
       res.on('close', () => {
         const status = wrap
           ? req.headers['x-cache-status'] === 'stale'
-            ? 'rvl'
-            : 'mis'
-          : 'byp'
+            ? 'update'
+            : 'miss'
+          : 'bypass'
         log(start, status, req.url)
 
         if (wrap && res.statusCode === 200 && buf.body) {
