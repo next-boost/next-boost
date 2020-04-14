@@ -8,11 +8,10 @@
 
 - In-place replacement for next.js's production mode: `next start`
 - Greatly reducing the server TTFB (time-to-first-byte)
-- Using diskcache based on SQLite3, `next-boost` has
-    - no memory capacity limit, and works on cheap VPS
-    - high performance (100K+ pages in production)
+- By using diskcache based on SQLite3, `next-boost`
+    - has no memory capacity limit, and works on cheap VPS
+    - has high performance (100K+ pages in production), and may even have [better performace than pure file system](https://www.sqlite.org/fasterthanfs.html) cache
     - works on major platforms
-    - [better performace than pure file system](https://www.sqlite.org/fasterthanfs.html)
 
 ## How it works
 
@@ -31,7 +30,7 @@ $ npm install next-boost --save
 
 ## Basic Usage
 
-### Work with next.js
+### In-place replacement for next.js
 
 After install the package, just change the start script from `next start` to `next-boost`. All `next start`'s command line arguments, like `-p` for specifing the port, are compatible.
 
