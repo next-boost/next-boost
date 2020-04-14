@@ -12,6 +12,13 @@ import {
   wrappedResponse,
 } from './utils'
 
+function isCachable(req: http.IncomingMessage) {
+  return (
+    (req.method === 'GET' || req.method === 'HEAD') &&
+    req.headers['x-cache-status'] !== 'stale'
+  )
+}
+
 export default class CachedHandler {
   manager: ChildProcess
   cache: Cache
@@ -39,19 +46,14 @@ export default class CachedHandler {
       let wrap = false
       const start = process.hrtime()
 
-      if (
-        (req.method === 'GET' || req.method === 'HEAD') &&
-        req.headers['x-cache-status'] !== 'stale' // speical mark added by revalidate.ts
-      ) {
+      if (isCachable(req)) {
         const status = this.cache.status('body:' + req.url)
         if (status !== 'miss') {
           if (status === 'stale') {
             this.manager.send({ action: 'revalidate', payload: req.url })
-            log(start, 'stale', req.url)
-          } else {
-            log(start, 'hit', req.url)
           }
           serveCache(this.cache, req, res)
+          log(start, status, req.url)
           return
         }
       }

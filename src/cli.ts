@@ -1,20 +1,22 @@
+const helpMessage = `
+  Description
+    Starts next.js application with stale-while-validate style cache.
+    The application should be compiled with \`next build\` first.
+
+  Usage
+    $ next-boost <dir> -p <port>
+
+  <dir> represents the directory of the Next.js application.
+  If no directory is provided, the current directory will be used.
+
+  Options
+    --port, -p      A port number on which to start the application
+    --hostname, -H  Hostname on which to start the application
+    --help, -h      Displays this message
+`
+
 function help(argv?: string[]) {
-  console.log(`
-    Description
-      Starts next.js application with stale-while-validate style cache.
-      The application should be compiled with \`next build\` first.
-
-    Usage
-      $ next-boost <dir> -p <port>
-
-    <dir> represents the directory of the Next.js application.
-    If no directory is provided, the current directory will be used.
-
-    Options
-      --port, -p      A port number on which to start the application
-      --hostname, -H  Hostname on which to start the application
-      --help, -h      Displays this message
-  `)
+  console.log(helpMessage)
   if (argv) {
     throw new Error(`Failed to parse arguments ${argv.join(' ')}`)
   }
@@ -22,18 +24,18 @@ function help(argv?: string[]) {
 
 export type Argv = { [key: string]: boolean | number | string }
 
-export function parse(raw: string[]) {
-  const types: { [key: string]: any } = {
-    '--help': Boolean,
-    '--port': Number,
-    '--hostname': String,
-  }
-  const alias: { [key: string]: string } = {
-    '-h': '--help',
-    '-p': '--port',
-    '-H': '--hostname',
-  }
+const types: { [key: string]: any } = {
+  '--help': Boolean,
+  '--port': Number,
+  '--hostname': String,
+}
+const alias: { [key: string]: string } = {
+  '-h': '--help',
+  '-p': '--port',
+  '-H': '--hostname',
+}
 
+export function parse(raw: string[]) {
   raw = raw.slice(2)
   const argv: Argv = {}
   for (let i = 0; i < raw.length; i++) {
