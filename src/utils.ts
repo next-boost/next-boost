@@ -87,12 +87,7 @@ export function mergeConfig(c: CacheConfig = {}) {
     hostname: 'localhost',
     port: 3000,
     cache: { dbPath: './.cache.db', ttl: 3600, tbd: 3600 },
-    rules: [
-      {
-        regex: '.*',
-        ttl: 3600,
-      },
-    ],
+    rules: [{ regex: '.*', ttl: 3600 }],
   }
 
   if (!c.filename) c.filename = '.next-boost.js'
