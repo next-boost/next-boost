@@ -64,13 +64,10 @@ export function serveCache(
   res: http.ServerResponse
 ) {
   const start = process.hrtime()
-  const shouldCache =
-    (req.method === 'GET' || req.method === 'HEAD') &&
-    req.headers['x-cache-status'] !== 'stale'
-  if (!shouldCache) return false
-
+  const notAllowed = ['GET', 'HEAD'].indexOf(req.method) === -1
+  const updating = req.headers['x-cache-status'] === 'stale'
   const status = cache.status('body:' + req.url)
-  if (status === 'miss') return false
+  if (notAllowed || updating || status === 'miss') return false
 
   const body = cache.get<Buffer>('body:' + req.url)
   const headers = cache.get<http.OutgoingHttpHeaders>('header:' + req.url)
@@ -82,11 +79,11 @@ export function serveCache(
   stream.end(body)
 
   res.removeHeader('content-length')
+  res.removeHeader('content-encoding')
   if (shouldZip(req)) {
     res.setHeader('content-encoding', 'gzip')
     stream.pipe(res)
   } else {
-    res.removeHeader('content-encoding')
     stream.pipe(createGunzip()).pipe(res)
   }
   log(start, status, req.url)
