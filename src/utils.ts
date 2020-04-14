@@ -47,11 +47,31 @@ export function wrappedResponse(
   return res
 }
 
+export function log(
+  start: [number, number],
+  status: string,
+  msg?: string
+): void {
+  const [secs, ns] = process.hrtime(start)
+  const ms = ns / 1000000
+  const time = `${secs > 0 ? secs + 's' : ''}${ms.toFixed(1)}ms`
+  console.log('%s | %s: %s', time.padStart(7), status.padEnd(6), msg)
+}
+
 export function serveCache(
   cache: Cache,
   req: http.IncomingMessage,
   res: http.ServerResponse
 ) {
+  const start = process.hrtime()
+  const shouldCache =
+    (req.method === 'GET' || req.method === 'HEAD') &&
+    req.headers['x-cache-status'] !== 'stale'
+  if (!shouldCache) return false
+
+  const status = cache.status('body:' + req.url)
+  if (status === 'miss') return false
+
   const body = cache.get<Buffer>('body:' + req.url)
   const headers = cache.get<http.OutgoingHttpHeaders>('header:' + req.url)
   for (const k in headers) {
@@ -69,17 +89,8 @@ export function serveCache(
     res.removeHeader('content-encoding')
     stream.pipe(createGunzip()).pipe(res)
   }
-}
-
-export function log(
-  start: [number, number],
-  status: string,
-  msg?: string
-): void {
-  const [secs, ns] = process.hrtime(start)
-  const ms = ns / 1000000
-  const time = `${secs > 0 ? secs + 's' : ''}${ms.toFixed(1)}ms`
-  console.log('%s | %s: %s', time.padStart(7), status.padEnd(6), msg)
+  log(start, status, req.url)
+  return status
 }
 
 export function mergeConfig(c: CacheConfig = {}) {
