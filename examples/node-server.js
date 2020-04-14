@@ -1,10 +1,11 @@
 const http = require('http')
-const CachedHandler = require('../dist/handler')
+const CachedHandler = require('../dist/handler').default
 
 // a sluggish page
-const handler = (req, res) => setTimeout(() => res.end('Mr. Slow'), 2000)
+const handler = (_, res) =>
+  setTimeout(() => res.end(new Date().toISOString()), 2000)
 const port = 3000
-const opts = { port }
+const opts = { port, rules: [{ regex: '.*', ttl: 1 }] }
 const cached = new CachedHandler(handler, opts)
 const server = new http.Server(cached.handler)
 server.listen(port, () => {

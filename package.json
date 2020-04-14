@@ -14,7 +14,8 @@
     "test-cov": "NODE_ENV=test nyc mocha test/*.test.ts"
   },
   "files": [
-    "dist"
+    "dist",
+    "README.md"
   ],
   "author": {
     "name": "Rakuraku Jyo",

@@ -19,16 +19,30 @@ $ npm install next-boost --save
 
 ## Basic Usage
 
+### Work with next.js
+
+After install the package, just change the start script from `next start` to `next-boost`. All `next start`'s command line arguments, like `-p` for specifing the port, are compatible.
+
+```
+ "scripts": {
+    ...
+    "start": "next-boost",
+    ...
+  },
+```
+
+### Programmatical Usage
+
 ```javascript
 const http = require('http')
-const { createCachedHandler } = require('next-boost')
+const CachedHandler = require('../dist/handler').default
 
 // a sluggish page
-const handler = (req, res) => setTimeout(() => res.end('Mr. Slow'), 2000)
+const handler = (_, res) => setTimeout(() => res.end(new Date().toISOString()), 2000)
 const port = 3000
-const opts = { port }
-const cached = createCachedHandler(handler, opts)
-const server = new http.Server(cached)
+const opts = { port, rules: [{ regex: '.*', ttl: 1 }] }
+const cached = new CachedHandler(handler, opts)
+const server = new http.Server(cached.handler)
 server.listen(port, () => {
   console.log(`> Server on http://localhost:${port}`)
 })
@@ -40,17 +54,19 @@ The server log will be something like:
 > Cache located at ./.cache.db
 > Server on http://localhost:3000
 > Cache manager inited, will start to purge in 3600s
-2s4.2ms | mis: /blog
-  2.6ms | hit: /blog
+```
+
+After the server started, try to access the server serveral times with your browser or `curl http://localhost:3000`. With the cache layer, only the first response is sluggish and the rests are super fast.
+
+```
+2s6.9ms | miss: /
+  0.1ms | hit   : /
+  0.1ms | stale : /
+2s3.9ms | update: /
 ```
 
 The first one takes more than 2 seconds and the second request is fetch from cache and only takes 2.6ms.
 
-### Work with next.js
-
-`next start`
-
-### Programmatical Usage
 
 ## Warnings on next.js custom server
 
