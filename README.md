@@ -70,14 +70,13 @@ The server log will be something like:
 
 After the server started, try to access the server serveral times with your browser or `curl http://localhost:3000`. With the cache layer, only the first response is sluggish and the rests are super fast.
 
+```bash
+2s6.9ms | miss: /      # The first one takes more than 2 seconds
+  0.1ms | hit   : /    # The second request only takes 0.1ms
+  0.1ms | stale : /    # As we set ttl to 1 seconds, revalidating process has kicked in
+  0.1ms | stale : /    # Until updated, the stale result is always served
+2s3.9ms | update: /    # It took 2s+ to update on background
 ```
-2s6.9ms | miss: /
-  0.1ms | hit   : /
-  0.1ms | stale : /
-2s3.9ms | update: /
-```
-
-The first one takes more than 2 seconds and the second request is fetch from cache and only takes 2.6ms.
 
 ### Options
 
