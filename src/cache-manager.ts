@@ -9,7 +9,7 @@ let interval: NodeJS.Timeout
 let conf: CacheConfig
 
 function revalidate(uri: string) {
-  const url = `http://${conf.hostname}:${conf.port}` + uri
+  const url = `http://${conf.hostname || 'localhost'}:${conf.port}` + uri
   if (queue.has(url)) return
 
   queue.add(url)
@@ -32,10 +32,29 @@ function initPurge() {
 process.on('message', (cmd: CommandArg) => {
   if (cmd.action === 'revalidate') {
     revalidate(cmd.payload)
-  } else if (cmd.action === 'init') {
+  } else {
     conf = cmd.payload
     initPurge()
   }
 })
 
-export default () => fork(__filename)
+export interface CacheManager {
+  init(conf: CacheConfig): void
+  revalidate(url: string): void
+  kill(signal?: NodeJS.Signals | number): boolean
+}
+
+export default (): CacheManager => {
+  const cp = fork(__filename)
+  return {
+    init(conf) {
+      cp.send({ action: 'init', payload: conf })
+    },
+    revalidate(url) {
+      cp.send({ action: 'revalidate', payload: url })
+    },
+    kill(signal) {
+      return cp.kill(signal)
+    },
+  }
+}

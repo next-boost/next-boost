@@ -5,7 +5,8 @@ import CachedHandler from '../handler'
 
 const serve = async (argv: Argv) => {
   const port = (argv['--port'] as number) || 3000
-  const hostname = (argv['--hostname'] as string) || 'localhost'
+  // no host binding by default, the same as `next start`
+  const hostname = argv['--hostname'] as string
   const dir = (argv['dir'] as string) || '.'
   const app = require('next')({ dev: false, dir })
   const handler = app.getRequestHandler()
@@ -14,7 +15,7 @@ const serve = async (argv: Argv) => {
   await app.prepare()
   const server = new http.Server(cached.handler)
   server.listen(port, hostname, () => {
-    console.log(`> Server on http://${hostname}:${port}`)
+    console.log(`> Server on http://${hostname || 'localhost'}:${port}`)
   })
   process.on('SIGTERM', () => {
     console.log('> Shutting down...')

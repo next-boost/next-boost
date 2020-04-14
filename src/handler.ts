@@ -1,8 +1,7 @@
-import { ChildProcess } from 'child_process'
 import http from 'http'
 import { gzipSync } from 'zlib'
 import Cache from './cache'
-import Manager from './cache-manager'
+import Manager, { CacheManager } from './cache-manager'
 import { CacheConfig } from './types'
 import {
   isZipped,
@@ -22,7 +21,7 @@ function matchRule(conf: CacheConfig, url: string) {
 }
 
 function wrap(
-  manager: ChildProcess,
+  manager: CacheManager,
   cache: Cache,
   conf: CacheConfig,
   handler: http.RequestListener
@@ -32,12 +31,8 @@ function wrap(
     const start = process.hrtime()
 
     const served = serveCache(cache, req, res)
-    if (served) {
-      if (served === 'stale') {
-        manager.send({ action: 'revalidate', payload: req.url })
-      }
-      return
-    }
+    if (served === 'stale') manager.revalidate(req.url)
+    if (served) return
 
     const { matched, ttl } = matchRule(conf, req.url)
 
@@ -59,7 +54,7 @@ function wrap(
       // and the contents are identical. Server will return no body.
       // Here we use the revalidation process to cache the page later
       if (matched && res.statusCode === 304) {
-        manager.send({ action: 'revalidate', payload: req.url })
+        manager.revalidate(req.url)
       }
     })
 
@@ -68,7 +63,7 @@ function wrap(
 }
 
 export default class CachedHandler {
-  manager: ChildProcess
+  manager: CacheManager
   cache: Cache
   handler: http.RequestListener
 
@@ -87,7 +82,7 @@ export default class CachedHandler {
 
     // init the child process for revalidate and cache purge
     this.manager = Manager()
-    this.manager.send({ action: 'init', payload: conf })
+    this.manager.init(conf)
     this.handler = wrap(this.manager, this.cache, conf, handler)
   }
 

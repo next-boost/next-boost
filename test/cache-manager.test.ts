@@ -19,12 +19,14 @@ describe('cache manager', () => {
       }, 500)
     })
     server.listen()
-    const conf = mergeConfig({ port: (server.address() as AddressInfo).port })
+    const conf = mergeConfig({
+      hostname: null,
+      port: (server.address() as AddressInfo).port,
+    })
     conf.cache.tbd = 0.5
-    manager.send({ action: 'init', payload: conf })
-    manager.send({ action: 'init', payload: conf }) // ignored
-    manager.send({ action: 'unknown', payload: conf }) // ignored
-    manager.send({ action: 'revalidate', payload: url })
-    manager.send({ action: 'revalidate', payload: url }) // ignored
+    manager.init(conf)
+    manager.init(conf) // ignored
+    manager.revalidate(url)
+    manager.revalidate(url) // ignored
   }).timeout(5000)
 })

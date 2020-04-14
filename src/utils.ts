@@ -7,18 +7,18 @@ import { createGunzip } from 'zlib'
 import Cache from './cache'
 import { CacheConfig } from './types'
 
-export function shouldZip(req: http.IncomingMessage): boolean {
+function shouldZip(req: http.IncomingMessage): boolean {
   const field = req.headers['accept-encoding']
   return field !== undefined && field.indexOf('gzip') !== -1
 }
 
-export function isZipped(res: http.ServerResponse): boolean {
+function isZipped(res: http.ServerResponse): boolean {
   const field = res.getHeader('content-encoding')
   if (typeof field === 'number') return false
   return field !== undefined && field.indexOf('gzip') !== -1
 }
 
-export function wrappedResponse(
+function wrappedResponse(
   res: http.ServerResponse,
   cache: { [key: string]: unknown }
 ): http.ServerResponse {
@@ -47,18 +47,14 @@ export function wrappedResponse(
   return res
 }
 
-export function log(
-  start: [number, number],
-  status: string,
-  msg?: string
-): void {
+function log(start: [number, number], status: string, msg?: string): void {
   const [secs, ns] = process.hrtime(start)
   const ms = ns / 1000000
   const time = `${secs > 0 ? secs + 's' : ''}${ms.toFixed(1)}ms`
   console.log('%s | %s: %s', time.padStart(7), status.padEnd(6), msg)
 }
 
-export function serveCache(
+function serveCache(
   cache: Cache,
   req: http.IncomingMessage,
   res: http.ServerResponse
@@ -90,7 +86,7 @@ export function serveCache(
   return status
 }
 
-export function mergeConfig(c: CacheConfig = {}) {
+function mergeConfig(c: CacheConfig = {}) {
   const conf: CacheConfig = {
     hostname: 'localhost',
     port: 3000,
@@ -119,8 +115,18 @@ export function mergeConfig(c: CacheConfig = {}) {
   return conf
 }
 
-export function fork(modulePath: string) {
+function fork(modulePath: string) {
   const isTest = process.env.NODE_ENV === 'test'
   const options = isTest ? { execArgv: ['-r', 'ts-node/register'] } : null
   return cp.fork(modulePath, [], options)
+}
+
+export {
+  isZipped,
+  shouldZip,
+  log,
+  mergeConfig,
+  serveCache,
+  wrappedResponse,
+  fork,
 }
