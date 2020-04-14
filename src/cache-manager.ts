@@ -26,7 +26,7 @@ function initPurge() {
     const start = process.hrtime()
     const rv = cache.purge()
     log(start, 'prg', `purged and vacuum all ${rv.changes} inactive cache`)
-  }, cache.tbd * 1000)
+  }, Math.min(cache.tbd, 86400) * 1000)
 }
 
 process.on('message', (cmd: CommandArg) => {

@@ -90,7 +90,7 @@ function mergeConfig(c: CacheConfig = {}) {
   const conf: CacheConfig = {
     hostname: 'localhost',
     port: 3000,
-    cache: { dbPath: './.cache.db', ttl: 3600, tbd: 3600 },
+    cache: { dbPath: './.cache.db', ttl: 60, tbd: 86400 },
     rules: [{ regex: '.*', ttl: 3600 }],
   }
 
