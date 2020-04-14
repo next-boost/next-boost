@@ -78,9 +78,8 @@ export function log(
 ): void {
   const [secs, ns] = process.hrtime(start)
   const ms = ns / 1000000
-
   const time = `${secs > 0 ? secs + 's' : ''}${ms.toFixed(1)}ms`
-  console.log(`%s | %s: %s`, time.padStart(7), status.padEnd(6), msg)
+  console.log('%s | %s: %s', time.padStart(7), status.padEnd(6), msg)
 }
 
 export function mergeConfig(c: CacheConfig = {}) {
