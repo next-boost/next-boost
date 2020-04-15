@@ -62,7 +62,7 @@ function serveCache(
 ) {
   const start = process.hrtime()
   const notAllowed = ['GET', 'HEAD'].indexOf(req.method) === -1
-  const updating = req.headers['x-cache-status'] === 'stale'
+  const updating = req.headers['x-cache-status'] === 'update'
   const status = cache.status('body:' + req.url)
   if (notAllowed || updating || status === 'miss') return false
 
