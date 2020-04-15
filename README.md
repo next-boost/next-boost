@@ -2,17 +2,17 @@
 
 # next-boost
 
-`next-boost` is a middleware which adds a disk cache layer to your SSR applications. It was built originally for `next.js` SSR applications and can be used in any node.js `http.Server` based application.
+`next-boost` is a middleware which adds a disk cache layer to your SSR applications. It was built originally for `Next.js` SSR applications and can be used in any node.js `http.Server` based application.
 
 ## Features
 
-- In-place replacement for next.js's production mode: `next start`
+- In-place replacement for Next.js's production mode: `next start`
 - Greatly reducing the server TTFB (time-to-first-byte)
 - By using diskcache based on SQLite3, `next-boost`
     - has no memory capacity limit, and works on cheap VPS
     - has high performance (100K+ pages in production), and may even have [better performace than pure file system](https://www.sqlite.org/fasterthanfs.html) cache
     - works on major platforms
-- Small footprint: [200 LOC](https://coveralls.io/github/rjyo/next-boost?branch=master) and 1 npm dependency for SQLLite3(`better-sqlite3`)
+- Small footprint: [200 LOC](https://coveralls.io/github/rjyo/next-boost?branch=master) and 1 npm dependency for SQLLite3 (`better-sqlite3`)
 
 ## How it works
 
@@ -31,7 +31,7 @@ $ npm install next-boost --save
 
 ## Basic Usage
 
-### In-place replacement for next.js
+### In-place replacement for Next.js
 
 After install the package, just change the start script from `next start` to `next-boost`. All `next start`'s command line arguments, like `-p` for specifing the port, are compatible.
 
@@ -50,7 +50,7 @@ const http = require('http')
 const CachedHandler = require('../dist/handler').default
 
 // a sluggish page
-const handler = (_, res) => setTimeout(() => res.end(new Date().toISOString()), 2000)
+const handler = (req, res) => setTimeout(() => res.end(new Date().toISOString()), 2000)
 const port = 3000
 // revalidate all pages after 1 second
 const opts = { port, rules: [{ regex: '.*', ttl: 1 }] }
@@ -60,6 +60,8 @@ server.listen(port, () => {
   console.log(`> Server on http://localhost:${port}`)
 })
 ```
+
+The handler is just a pure [NodeJS requestListener](https://nodejs.org/api/http.html#http_http_createserver_options_requestlistener). And if you are using Next.js's custom server, it will be `app.getRequestHandler()`. Check next-boost's [cli implementation](https://github.com/rjyo/next-boost/blob/master/src/next/server.ts) here.
 
 The server log will be something like:
 
@@ -104,13 +106,13 @@ interface URLCacheRule {
 }
 ```
 
-tips: If you are using `next-boost` with next.js directly, you may want to use the config file.
+tips: If you are using `next-boost` with Next.js directly, you may want to use the config file.
 
 And here's an example [`.next-boost.sample.js`](https://github.com/rjyo/next-boost/blob/master/.next-boost.sample.js) in the repo.
 
 ## Performance
 
-Here are the comparision of using `ApacheBench` on a blog post fetched from database. HTML prerendered and the db operation takes around 10~20ms. The page takes around 200ms for next.js to render.
+Here are the comparision of using `ApacheBench` on a blog post fetched from database. HTML prerendered and the db operation takes around 10~20ms. The page takes around 200ms for Next.js to render.
 
 ```
 $ /usr/local/bin/ab -n 200 -c 8 http://127.0.0.1:3000/blog/posts/2020/3/postname
@@ -157,9 +159,9 @@ Transfer rate:          357.58 [Kbytes/sec] received
 
 ## FAQs
 
-### Notice about next.js's custom server
+### Notice about Next.js's custom server
 
-`next-boost` works as an in-place replacement for `next start` by using next.js's [custom server](https://nextjs.org/docs/advanced-features/custom-server) feature.
+`next-boost` works as an in-place replacement for `next start` by using Next.js's [custom server](https://nextjs.org/docs/advanced-features/custom-server) feature.
 
 On the linked page above, you can see the following notice:
 
