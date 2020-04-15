@@ -11,7 +11,7 @@ describe('serve cache', () => {
   cache.set('body:' + url, gzipSync(Buffer.from('AAA')))
   cache.set('header:' + url, { 'header-x': 'value-x' })
   const server = new http.Server((req, res) => {
-    const rv = serveCache({ quiet: true }, cache, req, res)
+    const rv = serveCache(cache, req, res)
     expect(rv).to.eq('hit')
   })
 
@@ -40,7 +40,7 @@ describe('serve cache', () => {
 
   it('skip cache when x-cache-status = update', (done) => {
     const server = new http.Server((req, res) => {
-      const status = serveCache({ quiet: true }, cache, req, res)
+      const status = serveCache(cache, req, res)
       expect(status).to.be.false
       res.end('BBB')
     })

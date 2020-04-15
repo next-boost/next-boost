@@ -33,9 +33,9 @@ function wrap(
     const buf: { [key: string]: any } = {}
     const start = process.hrtime()
 
-    const served = serveCache(conf, cache, req, res)
+    const served = serveCache(cache, req, res)
     if (served === 'stale') manager.revalidate(req.url)
-    if (served) return
+    if (served) return !conf.quiet && log(start, served, req.url)
 
     res.on('close', () => {
       const isUpdating = req.headers['x-cache-status'] === 'update'

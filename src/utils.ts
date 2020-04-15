@@ -55,12 +55,10 @@ function log(start: [number, number], status: string, msg?: string): void {
 }
 
 function serveCache(
-  conf: HandlerConfig,
   cache: Cache,
   req: http.IncomingMessage,
   res: http.ServerResponse
 ) {
-  const start = process.hrtime()
   const notAllowed = ['GET', 'HEAD'].indexOf(req.method) === -1
   const updating = req.headers['x-cache-status'] === 'update'
   const status = cache.status('body:' + req.url)
@@ -83,7 +81,6 @@ function serveCache(
   } else {
     stream.pipe(createGunzip()).pipe(res)
   }
-  if (!conf.quiet) log(start, status, req.url)
   return status
 }
 
