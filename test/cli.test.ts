@@ -12,13 +12,17 @@ describe('cli parser', () => {
     expect(args).to.be.an('object').has.keys(['--port', '--hostname'])
     expect(args['--port']).to.be.eq(123)
     expect(args['--hostname']).to.be.eq('abc')
+    expect(args['--quiet']).to.be.not.true
   })
 
   it('with alias', () => {
-    const args = parse(['node', 'abc.js', '-p', '123', '-H', 'abc'])
-    expect(args).to.be.an('object').has.keys(['--port', '--hostname'])
+    const args = parse(['node', 'abc.js', '-p', '123', '-H', 'abc', '-q'])
+    expect(args)
+      .to.be.an('object')
+      .has.keys(['--port', '--hostname', '--quiet'])
     expect(args['--port']).to.be.eq(123)
     expect(args['--hostname']).to.be.eq('abc')
+    expect(args['--quiet']).to.be.true
   })
 
   it('with dir', () => {

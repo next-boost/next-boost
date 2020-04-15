@@ -7,10 +7,11 @@ const serve = async (argv: Argv) => {
   const port = (argv['--port'] as number) || 3000
   // no host binding by default, the same as `next start`
   const hostname = argv['--hostname'] as string
+  const quiet = argv['--quiet'] as boolean
   const dir = (argv['dir'] as string) || '.'
   const app = require('next')({ dev: false, dir })
   const handler = app.getRequestHandler()
-  const cached = new CachedHandler(handler, { hostname, port })
+  const cached = new CachedHandler(handler, { hostname, port, quiet })
 
   await app.prepare()
   const server = new http.Server(cached.handler)
