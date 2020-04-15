@@ -3,7 +3,6 @@ import fs from 'fs'
 import http from 'http'
 import path from 'path'
 import { PassThrough } from 'stream'
-import { createGunzip } from 'zlib'
 import Cache from './cache'
 import { HandlerConfig } from './types'
 
@@ -70,17 +69,13 @@ function serveCache(
     res.setHeader(k, headers[k])
   }
   res.statusCode = 200
-  const stream = new PassThrough()
-  stream.end(body)
 
   res.removeHeader('content-length')
-  res.removeHeader('content-encoding')
-  if (shouldZip(req)) {
-    res.setHeader('content-encoding', 'gzip')
-    stream.pipe(res)
-  } else {
-    stream.pipe(createGunzip()).pipe(res)
-  }
+  res.setHeader('content-encoding', 'gzip')
+  const stream = new PassThrough()
+  stream.pipe(res)
+  stream.end(body)
+
   return status
 }
 

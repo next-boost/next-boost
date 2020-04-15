@@ -15,7 +15,7 @@ describe('serve cache', () => {
     expect(rv).to.eq('hit')
   })
 
-  it('client support gzip', (done) => {
+  it('cached contents', (done) => {
     request(server)
       .get(url)
       .expect(200)
@@ -23,17 +23,6 @@ describe('serve cache', () => {
         expect(err).to.be.null
         expect(res.text).to.eq('AAA')
         expect(res.header['header-x']).to.eq('value-x')
-        done()
-      })
-  })
-
-  it('client does not support gzip', (done) => {
-    request(server)
-      .get(url)
-      .set('accept-encoding', '')
-      .expect(200)
-      .end((err, res) => {
-        expect(res.text).to.eq('AAA')
         done()
       })
   })
