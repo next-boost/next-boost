@@ -12,6 +12,7 @@
     - has no memory capacity limit, and works on cheap VPS
     - has high performance (100K+ pages in production), and may even have [better performace than pure file system](https://www.sqlite.org/fasterthanfs.html) cache
     - works on major platforms
+- Small footprint: [200 LOC](https://coveralls.io/github/rjyo/next-boost?branch=master) and 1 npm dependency for SQLLite3(`better-sqlite3`)
 
 ## How it works
 
