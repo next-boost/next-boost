@@ -10,7 +10,7 @@ describe('cache manager', () => {
     const url = '/aaa'
     const server = new http.Server((req, res) => {
       res.end()
-      expect(req.headers['x-cache-status']).to.eq('stale')
+      expect(req.headers['x-cache-status']).to.eq('update')
       expect(req.url).to.eq(url)
       setTimeout(() => {
         server.close()

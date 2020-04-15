@@ -13,7 +13,7 @@ function revalidate(uri: string) {
   if (queue.has(url)) return
 
   queue.add(url)
-  http.get(url, { headers: { 'x-cache-status': 'stale' } }, () => {
+  http.get(url, { headers: { 'x-cache-status': 'update' } }, () => {
     queue.delete(url)
   })
 }

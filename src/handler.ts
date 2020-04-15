@@ -27,6 +27,9 @@ function wrap(
   handler: http.RequestListener
 ): http.RequestListener {
   return (req, res) => {
+    const { matched, ttl } = matchRule(conf, req.url)
+    if (!matched) return handler(req, res)
+
     const buf: { [key: string]: any } = {}
     const start = process.hrtime()
 
@@ -34,17 +37,11 @@ function wrap(
     if (served === 'stale') manager.revalidate(req.url)
     if (served) return
 
-    const { matched, ttl } = matchRule(conf, req.url)
-
     res.on('close', () => {
-      const status = matched
-        ? req.headers['x-cache-status'] === 'stale'
-          ? 'update'
-          : 'miss'
-        : 'bypass'
-      log(start, status, req.url)
+      const isUpdating = req.headers['x-cache-status'] === 'update'
+      log(start, isUpdating ? 'update' : 'miss', req.url)
 
-      if (matched && res.statusCode === 200 && buf.body) {
+      if (res.statusCode === 200 && buf.body) {
         // save gzipped data
         if (!isZipped(res)) buf.body = gzipSync(buf.body)
         cache.set('body:' + req.url, buf.body, ttl)
@@ -53,12 +50,12 @@ function wrap(
       // This happens when browser send If-None-Match with etag
       // and the contents are identical. Server will return no body.
       // Here we use the revalidation process to cache the page later
-      if (matched && res.statusCode === 304) {
+      if (res.statusCode === 304) {
         manager.revalidate(req.url)
       }
     })
 
-    handler(req, matched ? wrappedResponse(res, buf) : res)
+    handler(req, wrappedResponse(res, buf))
   }
 }
 
