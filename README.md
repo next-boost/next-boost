@@ -88,9 +88,10 @@ If available, `.next-boost.js` at project root will be loaded. If you use next-b
 Type is defined as below:
 
 ```typescript
-interface CacheConfig {
+interface HandlerConfig {
   hostname?: string
   port?: number
+  quiet?: boolean
   filename?: string
   cache?: {
     ttl?: number

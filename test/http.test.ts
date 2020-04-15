@@ -10,7 +10,9 @@ describe('serve cache', () => {
   const url = '/p1'
   cache.set('body:' + url, gzipSync(Buffer.from('AAA')))
   cache.set('header:' + url, { 'header-x': 'value-x' })
-  const server = new http.Server((req, res) => serveCache(cache, req, res))
+  const server = new http.Server((req, res) =>
+    serveCache({ quiet: true }, cache, req, res)
+  )
 
   it('client support gzip', (done) => {
     request(server)

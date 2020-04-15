@@ -3,10 +3,11 @@ export interface URLCacheRule {
   ttl: number
 }
 
-export interface CacheConfig {
+export interface HandlerConfig {
   hostname?: string
   port?: number
   filename?: string
+  quiet?: boolean
   cache?: {
     ttl?: number
     tbd?: number

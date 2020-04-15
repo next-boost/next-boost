@@ -5,7 +5,7 @@ import path from 'path'
 import { PassThrough } from 'stream'
 import { createGunzip } from 'zlib'
 import Cache from './cache'
-import { CacheConfig } from './types'
+import { HandlerConfig } from './types'
 
 function shouldZip(req: http.IncomingMessage): boolean {
   const field = req.headers['accept-encoding']
@@ -55,6 +55,7 @@ function log(start: [number, number], status: string, msg?: string): void {
 }
 
 function serveCache(
+  conf: HandlerConfig,
   cache: Cache,
   req: http.IncomingMessage,
   res: http.ServerResponse
@@ -82,12 +83,12 @@ function serveCache(
   } else {
     stream.pipe(createGunzip()).pipe(res)
   }
-  log(start, status, req.url)
+  if (!conf.quiet) log(start, status, req.url)
   return status
 }
 
-function mergeConfig(c: CacheConfig = {}) {
-  const conf: CacheConfig = {
+function mergeConfig(c: HandlerConfig = {}) {
+  const conf: HandlerConfig = {
     hostname: 'localhost',
     port: 3000,
     cache: { dbPath: './.cache.db', ttl: 60, tbd: 86400 },
@@ -98,7 +99,7 @@ function mergeConfig(c: CacheConfig = {}) {
   const configFile = path.resolve(c.filename)
   if (fs.existsSync(configFile)) {
     try {
-      const f = require(configFile) as CacheConfig
+      const f = require(configFile) as HandlerConfig
       c.cache = Object.assign(f.cache || {}, c.cache || {})
       c = Object.assign(f, c)
       console.log('> Loaded next-boost config from %s', c.filename)

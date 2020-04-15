@@ -1,12 +1,12 @@
 import http from 'http'
 import Cache from './cache'
-import { CacheConfig, CommandArg } from './types'
+import { HandlerConfig, CommandArg } from './types'
 import { fork, log } from './utils'
 
 // prevent same url being revalidated multiple times
 const queue = new Set<string>()
 let interval: NodeJS.Timeout
-let conf: CacheConfig
+let conf: HandlerConfig
 
 function revalidate(uri: string) {
   const url = `http://${conf.hostname || 'localhost'}:${conf.port}` + uri
@@ -40,7 +40,7 @@ process.on('message', (cmd: CommandArg) => {
 })
 
 export interface CacheManager {
-  init(conf: CacheConfig): void
+  init(conf: HandlerConfig): void
   revalidate(url: string): void
   kill(signal?: NodeJS.Signals | number): boolean
 }

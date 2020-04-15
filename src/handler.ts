@@ -2,7 +2,7 @@ import http from 'http'
 import { gzipSync } from 'zlib'
 import Cache from './cache'
 import Manager, { CacheManager } from './cache-manager'
-import { CacheConfig } from './types'
+import { HandlerConfig } from './types'
 import {
   isZipped,
   log,
@@ -11,7 +11,7 @@ import {
   wrappedResponse,
 } from './utils'
 
-function matchRule(conf: CacheConfig, url: string) {
+function matchRule(conf: HandlerConfig, url: string) {
   for (const rule of conf.rules) {
     if (url && new RegExp(rule.regex).test(url)) {
       return { matched: true, ttl: rule.ttl }
@@ -23,7 +23,7 @@ function matchRule(conf: CacheConfig, url: string) {
 function wrap(
   manager: CacheManager,
   cache: Cache,
-  conf: CacheConfig,
+  conf: HandlerConfig,
   handler: http.RequestListener
 ): http.RequestListener {
   return (req, res) => {
@@ -33,13 +33,13 @@ function wrap(
     const buf: { [key: string]: any } = {}
     const start = process.hrtime()
 
-    const served = serveCache(cache, req, res)
+    const served = serveCache(conf, cache, req, res)
     if (served === 'stale') manager.revalidate(req.url)
     if (served) return
 
     res.on('close', () => {
       const isUpdating = req.headers['x-cache-status'] === 'update'
-      log(start, isUpdating ? 'update' : 'miss', req.url)
+      if (!conf.quiet) log(start, isUpdating ? 'update' : 'miss', req.url)
 
       if (res.statusCode === 200 && buf.body) {
         // save gzipped data
@@ -69,7 +69,7 @@ export default class CachedHandler {
       req: http.IncomingMessage,
       res: http.ServerResponse
     ) => Promise<void> | void,
-    options?: CacheConfig
+    options?: HandlerConfig
   ) {
     const conf = mergeConfig(options)
 

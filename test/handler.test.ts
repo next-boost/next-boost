@@ -114,3 +114,28 @@ describe('cached handler', () => {
     cached.close()
   })
 })
+
+describe('cached handler', () => {
+  let cached: CachedHandler
+  let server: http.Server
+
+  before((done) => {
+    const port = 3001
+    cached = new CachedHandler(handler, { port, quiet: true })
+    server = new http.Server(cached.handler).listen(port, done)
+  })
+
+  it('bypass /unknown', (done) => {
+    request(server)
+      .get('/unknown')
+      .end((_, res) => {
+        expect(res.status).to.eq(404)
+        done()
+      })
+  })
+
+  after(() => {
+    server.close()
+    cached.close()
+  })
+})
