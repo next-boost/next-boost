@@ -15,7 +15,7 @@
 
 ## How it works
 
-`next-boost` implements a server-side cache in the manner of [stale-while-revalidate](https://web.dev/stale-while-revalidate/), When an expired (`stale`) page is accessed, the cache will be served and at the same time, a background process will fetch the latest version (`revalidate`) of that page and save it to the cache.
+`next-boost` implements a server-side cache in the manner of [stale-while-revalidate](https://web.dev/stale-while-revalidate/). When an expired (`stale`) page is accessed, the cache will be served and at the same time, a background process will fetch the latest version (`revalidate`) of that page and save it to the cache.
 
 There are 2 parameters to control the behavior of the cache:
 
