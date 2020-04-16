@@ -9,6 +9,8 @@ Both routes will response in around 500ms purposely.
 
 In .next-boost.js, `/apple` is cached with ttl of 5 seconds, and `/orange` is not cached at all.
 
+## Run
+
 ```
 $ npm install
 $ npm run build
@@ -25,5 +27,28 @@ $ npm start
   0.5ms | hit   : /apple
   0.3ms | stale : /apple
 504.1ms | update: /apple
+```
 
+## Benchmark
+
+You can compare the 2 routes below with `ab`:
+
+```
+$ ab -n 50 -c 4 http://127.0.0.1:3000/apple
+
+...
+Requests per second:    2097.93 [#/sec] (mean)
+Time per request:       1.907 [ms] (mean)
+Time per request:       0.477 [ms] (mean, across all concurrent requests)
+Transfer rate:          1735.30 [Kbytes/sec] received
+...
+
+$ ab -n 50 -c 4 http://127.0.0.1:3000/orange
+
+...
+Requests per second:    7.01 [#/sec] (mean)
+Time per request:       570.622 [ms] (mean)
+Time per request:       142.655 [ms] (mean, across all concurrent requests)
+Transfer rate:          14.33 [Kbytes/sec] received
+...
 ```
