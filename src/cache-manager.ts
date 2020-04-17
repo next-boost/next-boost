@@ -21,7 +21,7 @@ function revalidate(uri: string) {
 function initPurge() {
   if (interval) return
   const cache = new Cache(conf.cache)
-  const tbd = 3600
+  const tbd = Math.min(cache.tbd, 3600)
   console.log('> Cache manager inited, will start to purge in %ds', tbd)
   interval = setInterval(() => {
     const start = process.hrtime()
