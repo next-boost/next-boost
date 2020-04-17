@@ -7,7 +7,10 @@ import {
   wrappedResponse,
   mergeConfig,
 } from '../src/utils'
-import { sleep } from './cache.test'
+
+export const sleep = async (t: number) => {
+  return new Promise((resolve) => setTimeout(resolve, t))
+}
 
 describe('utils', () => {
   it('is response zipped', () => {
@@ -62,7 +65,7 @@ describe('utils', () => {
     expect(conf.rules[0].regex).to.eq('.*')
     expect(conf.filename).to.eq('.next-boost.js')
     expect(conf.cache.ttl).to.eq(1)
-    expect(conf.cache.dbPath).to.eq('./.cache.db')
+    expect(conf.cache.path).to.be.undefined
   })
 
   it('merge config / with basic config', () => {
@@ -72,7 +75,7 @@ describe('utils', () => {
     })
     expect(conf.hostname).to.eq('abc.com')
     expect(conf.port).to.eq(3000)
-    expect(conf.cache.dbPath).to.eq('/tmp/jinja.cache.db')
+    expect(conf.cache.path).to.eq('/tmp/jinja')
     expect(conf.rules.length).to.eq(2)
     expect(conf.rules[0].regex).to.eq('^/blog.*')
     expect(conf.filename).to.eq('.next-boost.sample.js')
@@ -85,7 +88,7 @@ describe('utils', () => {
     })
     expect(conf.hostname).to.eq('abc.com')
     expect(conf.port).to.eq(3000)
-    expect(conf.cache.dbPath).to.eq('./.cache.db')
+    expect(conf.cache.path).to.be.undefined
     expect(conf.rules.length).to.eq(1)
     expect(conf.rules[0].regex).to.eq('.*')
     expect(conf.filename).to.eq('./test/fixtures/conf1.js')

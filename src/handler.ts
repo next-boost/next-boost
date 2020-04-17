@@ -1,6 +1,6 @@
 import http from 'http'
+import Cache from 'hybrid-disk-cache'
 import { gzipSync } from 'zlib'
-import Cache from './cache'
 import Manager, { CacheManager } from './cache-manager'
 import { HandlerConfig } from './types'
 import {
@@ -18,6 +18,10 @@ function matchRule(conf: HandlerConfig, url: string) {
     }
   }
   return { matched: false, ttl: conf.cache.ttl }
+}
+
+function toBuffer(o: any) {
+  return Buffer.from(JSON.stringify(o))
 }
 
 function wrap(
@@ -45,7 +49,7 @@ function wrap(
         // save gzipped data
         if (!isZipped(res)) buf.body = gzipSync(buf.body)
         cache.set('body:' + req.url, buf.body, ttl)
-        cache.set('header:' + req.url, res.getHeaders(), ttl)
+        cache.set('header:' + req.url, toBuffer(res.getHeaders()), ttl)
       }
       // This happens when browser send If-None-Match with etag
       // and the contents are identical. Server will return no body.
@@ -75,7 +79,7 @@ export default class CachedHandler {
 
     // the cache
     this.cache = new Cache(conf.cache)
-    console.log(`> Cache located at ${conf.cache.dbPath}`)
+    console.log(`> Cache located at ${this.cache.path}`)
 
     // init the child process for revalidate and cache purge
     this.manager = Manager()

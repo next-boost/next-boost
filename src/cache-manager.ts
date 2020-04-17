@@ -1,6 +1,6 @@
 import http from 'http'
-import Cache from './cache'
-import { HandlerConfig, CommandArg } from './types'
+import Cache from 'hybrid-disk-cache'
+import { CommandArg, HandlerConfig } from './types'
 import { fork, log } from './utils'
 
 // prevent same url being revalidated multiple times
@@ -26,7 +26,7 @@ function initPurge() {
   interval = setInterval(() => {
     const start = process.hrtime()
     const rv = cache.purge()
-    log(start, 'prg', `purged and vacuum all ${rv.changes} inactive cache`)
+    log(start, 'prg', `purged all ${rv} inactive record(s)`)
   }, tbd * 1000)
 }
 

@@ -2,14 +2,17 @@ import { expect } from 'chai'
 import http from 'http'
 import request from 'supertest'
 import { gzipSync } from 'zlib'
-import Cache from '../src/cache'
+import Cache from 'hybrid-disk-cache'
 import { serveCache } from '../src/utils'
 
 describe('serve cache', () => {
   const cache = new Cache()
   const url = '/p1'
   cache.set('body:' + url, gzipSync(Buffer.from('AAA')))
-  cache.set('header:' + url, { 'header-x': 'value-x' })
+  cache.set(
+    'header:' + url,
+    Buffer.from(JSON.stringify({ 'header-x': 'value-x' }))
+  )
   const server = new http.Server((req, res) => {
     const rv = serveCache(cache, req, res)
     expect(rv).to.eq('hit')

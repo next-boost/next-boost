@@ -1,6 +1,6 @@
 module.exports = {
   cache: {
-    dbPath: '/tmp/jinja.cache.db',
+    path: '/tmp/jinja',
     ttl: 60,
     tbd: 3600,
   },

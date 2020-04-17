@@ -11,7 +11,7 @@ export interface HandlerConfig {
   cache?: {
     ttl?: number
     tbd?: number
-    dbPath?: string
+    path?: string
   }
   rules?: Array<URLCacheRule>
 }

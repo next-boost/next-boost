@@ -66,7 +66,7 @@ The handler is just a pure [NodeJS requestListener](https://nodejs.org/api/http.
 The server log will be something like:
 
 ```
-> Cache located at ./.cache.db
+> Cache located at /tmp
 > Server on http://localhost:3000
 > Cache manager inited, will start to purge in 3600s
 ```
@@ -96,7 +96,7 @@ interface HandlerConfig {
   cache?: {
     ttl?: number
     tbd?: number
-    dbPath?: string
+    path?: string
   }
   rules?: Array<URLCacheRule>
 }

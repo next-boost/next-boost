@@ -1,9 +1,9 @@
 import cp from 'child_process'
 import fs from 'fs'
 import http from 'http'
+import Cache from 'hybrid-disk-cache'
 import path from 'path'
 import { PassThrough } from 'stream'
-import Cache from './cache'
 import { HandlerConfig } from './types'
 
 function shouldZip(req: http.IncomingMessage): boolean {
@@ -60,11 +60,11 @@ function serveCache(
 ) {
   const notAllowed = ['GET', 'HEAD'].indexOf(req.method) === -1
   const updating = req.headers['x-cache-status'] === 'update'
-  const status = cache.status('body:' + req.url)
+  const status = cache.has('body:' + req.url)
   if (notAllowed || updating || status === 'miss') return false
 
-  const body = cache.get<Buffer>('body:' + req.url)
-  const headers = cache.get<http.OutgoingHttpHeaders>('header:' + req.url)
+  const body = cache.get('body:' + req.url)
+  const headers = JSON.parse(cache.get('header:' + req.url).toString())
   for (const k in headers) {
     res.setHeader(k, headers[k])
   }
@@ -83,7 +83,7 @@ function mergeConfig(c: HandlerConfig = {}) {
   const conf: HandlerConfig = {
     hostname: 'localhost',
     port: 3000,
-    cache: { dbPath: './.cache.db', ttl: 60, tbd: 86400 },
+    cache: { ttl: 60, tbd: 3600 },
     rules: [{ regex: '.*', ttl: 3600 }],
   }
 
