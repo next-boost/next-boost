@@ -8,10 +8,11 @@
 
 - In-place replacement for Next.js's production mode: `next start`
 - Greatly reducing the server TTFB (time-to-first-byte)
-- By using [hybird-disk-cache](https://github.com/rjyo/hybrid-disk-cache) based on SQLite3 and the file system, `next-boost`
-    - has no memory capacity limit, and works on cheap VPS
-    - has high performance (100K+ pages in production), and may even have [better performace than pure file system](https://www.sqlite.org/fasterthanfs.html) cache
-    - works on major platforms
+- By using [hybird-disk-cache](https://github.com/rjyo/hybrid-disk-cache) based on SQLite3 and the file system, `next-boost` has
+    - no memory capacity limit, and works great on cheap VPSs
+    - no need to start a cache layer server like memcached, redis, mongodb and etc.
+    - great performance, and may even have [better performace than pure file system](https://www.sqlite.org/fasterthanfs.html) cache
+    - portability on major platforms
 - Small footprint: [141 LOC](https://coveralls.io/github/rjyo/next-boost?branch=master) and 1 npm dependency for the cache [(`hybrid-disk-cache`)](https://github.com/rjyo/hybrid-disk-cache)
 - Used in production with 300K pages cached
 - 100% test coverage
