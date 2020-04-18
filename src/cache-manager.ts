@@ -1,6 +1,6 @@
 import http from 'http'
 import Cache from 'hybrid-disk-cache'
-import { HandlerConfig } from './types'
+import { HandlerConfig } from './handler'
 import { log } from './utils'
 
 // prevent same url being revalidated multiple times

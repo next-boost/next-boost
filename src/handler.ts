@@ -2,7 +2,6 @@ import http from 'http'
 import Cache from 'hybrid-disk-cache'
 import { gzipSync } from 'zlib'
 import { initPurgeTimer, revalidate, stopPurgeTimer } from './cache-manager'
-import { HandlerConfig } from './types'
 import {
   isZipped,
   log,
@@ -22,6 +21,24 @@ function matchRule(conf: HandlerConfig, url: string) {
 
 function toBuffer(o: any) {
   return Buffer.from(JSON.stringify(o))
+}
+
+interface URLCacheRule {
+  regex: string
+  ttl: number
+}
+
+export interface HandlerConfig {
+  hostname?: string
+  port?: number
+  filename?: string
+  quiet?: boolean
+  cache?: {
+    ttl?: number
+    tbd?: number
+    path?: string
+  }
+  rules?: Array<URLCacheRule>
 }
 
 function wrap(

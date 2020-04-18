@@ -3,7 +3,7 @@ import http from 'http'
 import Cache from 'hybrid-disk-cache'
 import path from 'path'
 import { PassThrough } from 'stream'
-import { HandlerConfig } from './types'
+import { HandlerConfig } from './handler'
 
 function shouldZip(req: http.IncomingMessage): boolean {
   const field = req.headers['accept-encoding']
