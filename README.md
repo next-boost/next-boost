@@ -114,7 +114,7 @@ tips: If you are using `next-boost` with Next.js directly, you may want to use t
 
 And here's an example [`.next-boost.sample.js`](https://github.com/rjyo/next-boost/blob/master/.next-boost.sample.js) in the repo.
 
-By default, all URLs will be cached, you can change the rules programmatically or by using the `.next-boost.js` config file:
+By default, all URLs will be cached under the default rule `.*`. You can change the rules programmatically or by `.next-boost.js`:
 
 ```javascript
 module.exports = {
@@ -124,7 +124,7 @@ module.exports = {
 }
 ```
 
-Above: only cache pages with URL start with /blog
+Above: only caching pages with URL start with `/blog`.
 
 ## Performance
 
@@ -167,6 +167,8 @@ Time per request:       1674.185 [ms] (mean)
 Time per request:       209.273 [ms] (mean, across all concurrent requests)
 Transfer rate:          357.58 [Kbytes/sec] received
 ```
+
+Check the underlying [`hybrid-disk-cache`](https://github.com/rjyo/next-boost)'s performance here.
 
 ## Limitations
 
