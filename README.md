@@ -8,11 +8,13 @@
 
 - In-place replacement for Next.js's production mode: `next start`
 - Greatly reducing the server TTFB (time-to-first-byte)
-- By using diskcache based on SQLite3, `next-boost`
+- By using [hybird-disk-cache](https://github.com/rjyo/hybrid-disk-cache) based on SQLite3 and the file system, `next-boost`
     - has no memory capacity limit, and works on cheap VPS
     - has high performance (100K+ pages in production), and may even have [better performace than pure file system](https://www.sqlite.org/fasterthanfs.html) cache
     - works on major platforms
-- Small footprint: [200 LOC](https://coveralls.io/github/rjyo/next-boost?branch=master) and 1 npm dependency for SQLLite3 (`better-sqlite3`)
+- Small footprint: [141 LOC](https://coveralls.io/github/rjyo/next-boost?branch=master) and 1 npm dependency for the cache [(`hybrid-disk-cache`)](https://github.com/rjyo/hybrid-disk-cache)
+- Used in production with 300K pages cached
+- 100% test coverage
 
 ## How it works
 
@@ -111,6 +113,18 @@ tips: If you are using `next-boost` with Next.js directly, you may want to use t
 
 And here's an example [`.next-boost.sample.js`](https://github.com/rjyo/next-boost/blob/master/.next-boost.sample.js) in the repo.
 
+By default, all URLs will be cached, you can change the rules programmatically or by using the `.next-boost.js` config file:
+
+```javascript
+module.exports = {
+  rules: [
+    { regex: '^/blog.*', ttl: 300 },
+  ],
+}
+```
+
+Above: only cache pages with URL start with /blog
+
 ## Performance
 
 Here are the comparision of using `ApacheBench` on a blog post fetched from database. HTML prerendered and the db operation takes around 10~20ms. The page takes around 200ms for Next.js to render.
@@ -173,3 +187,7 @@ next-boost is meant to be used on cloud VPS or containers, so serverless functio
 ### Why SQLite
 
 Here's the article about [when not to use SQLite](https://www.sqlite.org/whentouse.html). And for next-boost's main purpuse: super faster SSR on low-cost VPSs, as far as I know, it is the best choice.
+
+## License
+
+MIT. Copyright 2020 Rakuraku Jyo.
