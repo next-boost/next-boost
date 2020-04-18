@@ -1,4 +1,3 @@
-import cp from 'child_process'
 import fs from 'fs'
 import http from 'http'
 import Cache from 'hybrid-disk-cache'
@@ -108,18 +107,4 @@ function mergeConfig(c: HandlerConfig = {}) {
   return conf
 }
 
-function fork(modulePath: string) {
-  const isTest = process.env.NODE_ENV === 'test'
-  const options = isTest ? { execArgv: ['-r', 'ts-node/register'] } : null
-  return cp.fork(modulePath, [], options)
-}
-
-export {
-  isZipped,
-  shouldZip,
-  log,
-  mergeConfig,
-  serveCache,
-  wrappedResponse,
-  fork,
-}
+export { isZipped, shouldZip, log, mergeConfig, serveCache, wrappedResponse }

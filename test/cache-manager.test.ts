@@ -1,12 +1,16 @@
 import { expect } from 'chai'
 import http from 'http'
+import Cache from 'hybrid-disk-cache'
 import { AddressInfo } from 'net'
-import Manger from '../src/cache-manager'
+import {
+  initPurgeTimer,
+  revalidate,
+  stopPurgeTimer,
+} from '../src/cache-manager'
 import { mergeConfig } from '../src/utils'
 
 describe('cache manager', () => {
   it('init and revalidate', (done) => {
-    const manager = Manger()
     const url = '/aaa'
     const server = new http.Server((req, res) => {
       res.end()
@@ -14,7 +18,7 @@ describe('cache manager', () => {
       expect(req.url).to.eq(url)
       setTimeout(() => {
         server.close()
-        manager.kill()
+        stopPurgeTimer()
         done()
       }, 500)
     })
@@ -24,9 +28,9 @@ describe('cache manager', () => {
       port: (server.address() as AddressInfo).port,
     })
     conf.cache.tbd = 0.5
-    manager.init(conf)
-    manager.init(conf) // ignored
-    manager.revalidate(url)
-    manager.revalidate(url) // ignored
+    const cache = new Cache(conf.cache)
+    initPurgeTimer(cache)
+    revalidate(conf, url)
+    revalidate(conf, url) // ignored
   }).timeout(5000)
 })

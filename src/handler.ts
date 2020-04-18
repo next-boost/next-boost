@@ -1,7 +1,7 @@
 import http from 'http'
 import Cache from 'hybrid-disk-cache'
 import { gzipSync } from 'zlib'
-import Manager, { CacheManager } from './cache-manager'
+import { initPurgeTimer, revalidate, stopPurgeTimer } from './cache-manager'
 import { HandlerConfig } from './types'
 import {
   isZipped,
@@ -25,7 +25,6 @@ function toBuffer(o: any) {
 }
 
 function wrap(
-  manager: CacheManager,
   cache: Cache,
   conf: HandlerConfig,
   handler: http.RequestListener
@@ -38,7 +37,7 @@ function wrap(
     const start = process.hrtime()
 
     const served = serveCache(cache, req, res)
-    if (served === 'stale') manager.revalidate(req.url)
+    if (served === 'stale') revalidate(conf, req.url)
     if (served) return !conf.quiet && log(start, served, req.url)
 
     res.on('close', () => {
@@ -55,7 +54,7 @@ function wrap(
       // and the contents are identical. Server will return no body.
       // Here we use the revalidation process to cache the page later
       if (res.statusCode === 304) {
-        manager.revalidate(req.url)
+        revalidate(conf, req.url)
       }
     })
 
@@ -64,7 +63,6 @@ function wrap(
 }
 
 export default class CachedHandler {
-  manager: CacheManager
   cache: Cache
   handler: http.RequestListener
 
@@ -81,13 +79,14 @@ export default class CachedHandler {
     this.cache = new Cache(conf.cache)
     console.log(`> Cache located at ${this.cache.path}`)
 
+    // purge timer
+    initPurgeTimer(this.cache)
+
     // init the child process for revalidate and cache purge
-    this.manager = Manager()
-    this.manager.init(conf)
-    this.handler = wrap(this.manager, this.cache, conf, handler)
+    this.handler = wrap(this.cache, conf, handler)
   }
 
   close() {
-    this.manager.kill()
+    stopPurgeTimer()
   }
 }
