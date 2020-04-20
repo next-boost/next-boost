@@ -29,7 +29,7 @@ export function initPurgeTimer(cache: Cache) {
   interval = setInterval(() => {
     const start = process.hrtime()
     const rv = cache.purge()
-    log(start, 'prg', `purged all ${rv} inactive record(s)`)
+    log(start, 'purge', `purged all ${rv} inactive record(s)`)
   }, tbd * 1000)
 }
 
