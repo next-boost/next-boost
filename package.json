@@ -46,7 +46,7 @@
   "homepage": "https://github.com/rjyo/next-boost",
   "license": "MIT",
   "dependencies": {
-    "hybrid-disk-cache": "^0.1.1"
+    "hybrid-disk-cache": "^0.1.2"
   },
   "peerDependencies": {
     "next": "^9.0.0"
