@@ -48,7 +48,9 @@ function wrappedResponse(
 function log(start: [number, number], status: string, msg?: string): void {
   const [secs, ns] = process.hrtime(start)
   const ms = ns / 1000000
-  const time = `${secs > 0 ? secs + 's' : ''}${ms.toFixed(1)}ms`
+  const timeS = `${secs > 0 ? secs + 's' : ''}`
+  const timeMs = `${secs === 0 ? ms.toFixed(1) : ms.toFixed(0)}ms`
+  const time = timeS + (secs > 1 ? '' : timeMs)
   console.log('%s | %s: %s', time.padStart(7), status.padEnd(6), msg)
 }
 

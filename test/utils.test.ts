@@ -35,7 +35,9 @@ describe('utils', () => {
     log(start, 'hit', 'A')
     await sleep(1000)
     log(start, 'hit', 'A')
-  })
+    await sleep(1000)
+    log(start, 'hit', 'A')
+  }).timeout(5000)
 
   it('wrapped response', () => {
     const req = new http.IncomingMessage(null)
