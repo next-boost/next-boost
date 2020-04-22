@@ -6,7 +6,7 @@
 
 ## Features
 
-- In-place replacement for Next.js's production mode: `next start`
+- Drop-in replacement for Next.js's production mode: `next start`
 - Greatly reducing the server TTFB (time-to-first-byte)
 - By using [hybird-disk-cache](https://github.com/rjyo/hybrid-disk-cache) based on SQLite3 and the file system, `next-boost` has
     - no memory capacity limit, and works great on cheap VPSs
@@ -34,7 +34,7 @@ $ npm install next-boost --save
 
 ## Basic Usage
 
-### In-place replacement for Next.js
+### Drop-in replacement for Next.js
 
 After install the package, just change the start script from `next start` to `next-boost`. All `next start`'s command line arguments, like `-p` for specifing the port, are compatible.
 
