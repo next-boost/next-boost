@@ -66,6 +66,9 @@ function wrap(
         if (!isZipped(res)) buf.body = gzipSync(buf.body)
         cache.set('body:' + req.url, buf.body, ttl)
         cache.set('header:' + req.url, toBuffer(res.getHeaders()), ttl)
+      } else if (isUpdating) {
+        cache.del('body:' + req.url)
+        cache.del('header:' + req.url)
       }
       // This happens when browser send If-None-Match with etag
       // and the contents are identical. Server will return no body.
