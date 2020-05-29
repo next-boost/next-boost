@@ -2,6 +2,7 @@
 import http from 'http'
 import { Argv, parse } from '../cli'
 import CachedHandler from '../handler'
+import Renderer from '../renderer'
 
 const serve = async (argv: Argv) => {
   const port = (argv['--port'] as number) || 3000
@@ -9,14 +10,14 @@ const serve = async (argv: Argv) => {
   const hostname = argv['--hostname'] as string
   const quiet = argv['--quiet'] as boolean
   const dir = (argv['dir'] as string) || '.'
-  const app = require('next')({ dev: false, dir })
-  const handler = app.getRequestHandler()
-  const cached = new CachedHandler(handler, { hostname, port, quiet })
 
-  await app.prepare()
+  const script = require.resolve('./init')
+  const renderer = new Renderer(script, { dir, dev: false })
+  const cached = new CachedHandler(renderer, { quiet })
+
   const server = new http.Server(cached.handler)
   server.listen(port, hostname, () => {
-    console.log(`> Server on http://${hostname || 'localhost'}:${port}`)
+    console.log(`> Serving on http://${hostname || 'localhost'}:${port}`)
   })
   process.on('SIGTERM', () => {
     console.log('> Shutting down...')

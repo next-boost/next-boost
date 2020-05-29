@@ -39,7 +39,7 @@ const alias: { [key: string]: string } = {
   '-H': '--hostname',
 }
 
-export function parse(raw: string[]) {
+export function parse(raw: string[]): Argv | void {
   raw = raw.slice(2)
   const argv: Argv = {}
   for (let i = 0; i < raw.length; i++) {

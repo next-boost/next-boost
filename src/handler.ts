@@ -1,14 +1,9 @@
 import http from 'http'
 import Cache from 'hybrid-disk-cache'
 import { gzipSync } from 'zlib'
-import { initPurgeTimer, revalidate, stopPurgeTimer } from './cache-manager'
-import {
-  isZipped,
-  log,
-  mergeConfig,
-  serveCache,
-  wrappedResponse,
-} from './utils'
+import { initPurgeTimer, stopPurgeTimer } from './cache-manager'
+import Renderer from './renderer'
+import { isZipped, log, mergeConfig, serveCache } from './utils'
 
 function matchRule(conf: HandlerConfig, url: string) {
   for (const rule of conf.rules) {
@@ -29,8 +24,6 @@ interface URLCacheRule {
 }
 
 export interface HandlerConfig {
-  hostname?: string
-  port?: number
   filename?: string
   quiet?: boolean
   cache?: {
@@ -44,69 +37,70 @@ export interface HandlerConfig {
 function wrap(
   cache: Cache,
   conf: HandlerConfig,
-  handler: http.RequestListener
+  renderer: Renderer
 ): http.RequestListener {
   return (req, res) => {
     const { matched, ttl } = matchRule(conf, req.url)
-    if (!matched) return handler(req, res)
+    if (!matched) return renderer.handler(req, res)
 
-    const buf: { [key: string]: any } = {}
-    const start = process.hrtime()
-
+    let start = process.hrtime()
     const served = serveCache(cache, req, res)
-    if (served === 'stale') revalidate(conf, req.url)
-    if (served) return !conf.quiet && log(start, served, req.url)
+    if (served === 'hit') return !conf.quiet && log(start, served, req.url)
 
-    res.on('close', () => {
-      const isUpdating = req.headers['x-cache-status'] === 'update'
+    // send task to render in child process
+    start = process.hrtime()
+    renderer.render(req, (statusCode, headers, body) => {
+      const status = req.headers['x-cache-status']
+      const isUpdating = status === 'update' || served === 'stale'
       if (!conf.quiet) log(start, isUpdating ? 'update' : 'miss', req.url)
 
-      if (res.statusCode === 200 && buf.body) {
+      if (statusCode === 200 && body.length > 0) {
         // save gzipped data
-        if (!isZipped(res)) buf.body = gzipSync(buf.body)
-        cache.set('body:' + req.url, buf.body, ttl)
-        cache.set('header:' + req.url, toBuffer(res.getHeaders()), ttl)
+        const buf = isZipped(headers) ? Buffer.from(body) : gzipSync(body)
+        cache.set('body:' + req.url, buf, ttl)
+        cache.set('header:' + req.url, toBuffer(headers), ttl)
       } else if (isUpdating) {
+        // updating but get no result
         cache.del('body:' + req.url)
         cache.del('header:' + req.url)
       }
-      // This happens when browser send If-None-Match with etag
-      // and the contents are identical. Server will return no body.
-      // Here we use the revalidation process to cache the page later
-      if (res.statusCode === 304) {
-        revalidate(conf, req.url)
-      }
-    })
 
-    handler(req, wrappedResponse(res, buf))
+      if (served) return
+      for (const k of Object.keys(headers)) {
+        res.setHeader(k, headers[k])
+      }
+      res.statusCode = statusCode
+      res.end(body)
+    })
   }
 }
 
 export default class CachedHandler {
   cache: Cache
   handler: http.RequestListener
+  private renderer: Renderer
 
-  constructor(
-    handler: (
-      req: http.IncomingMessage,
-      res: http.ServerResponse
-    ) => Promise<void> | void,
-    options?: HandlerConfig
-  ) {
+  constructor(renderer: Renderer, options?: HandlerConfig) {
+    console.log('> Preparing cached handler')
+
+    // merge config
     const conf = mergeConfig(options)
 
     // the cache
     this.cache = new Cache(conf.cache)
-    console.log(`> Cache located at ${this.cache.path}`)
+    console.log(`  Cache located at ${this.cache.path}`)
 
     // purge timer
     initPurgeTimer(this.cache)
 
     // init the child process for revalidate and cache purge
-    this.handler = wrap(this.cache, conf, handler)
+    this.handler = wrap(this.cache, conf, renderer)
+
+    this.renderer = renderer
   }
 
-  close() {
+  close(): void {
     stopPurgeTimer()
+    this.renderer.stop()
   }
 }

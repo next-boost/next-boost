@@ -1,36 +1,18 @@
-import { expect } from 'chai'
-import http from 'http'
 import Cache from 'hybrid-disk-cache'
-import { AddressInfo } from 'net'
-import {
-  initPurgeTimer,
-  revalidate,
-  stopPurgeTimer,
-} from '../src/cache-manager'
+import { initPurgeTimer, stopPurgeTimer } from '../src/cache-manager'
 import { mergeConfig } from '../src/utils'
 
 describe('cache manager', () => {
   it('init and revalidate', (done) => {
-    const url = '/aaa'
-    const server = new http.Server((req, res) => {
-      res.end()
-      expect(req.headers['x-cache-status']).to.eq('update')
-      expect(req.url).to.eq(url)
-      setTimeout(() => {
-        server.close()
-        stopPurgeTimer()
-        done()
-      }, 500)
-    })
-    server.listen()
-    const conf = mergeConfig({
-      hostname: null,
-      port: (server.address() as AddressInfo).port,
-    })
+    const conf = mergeConfig({})
     conf.cache.tbd = 0.5
     const cache = new Cache(conf.cache)
+    cache.purge = () => {
+      done()
+      stopPurgeTimer()
+      return 0
+    }
     initPurgeTimer(cache)
-    revalidate(conf, url)
-    revalidate(conf, url) // ignored
+    initPurgeTimer(cache)
   }).timeout(5000)
 })

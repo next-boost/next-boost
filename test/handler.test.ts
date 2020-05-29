@@ -1,36 +1,24 @@
 import { expect } from 'chai'
 import http from 'http'
 import request from 'supertest'
-import { gzipSync } from 'zlib'
 import CachedHandler from '../src/handler'
-
-const handler: http.RequestListener = (req, res) => {
-  if (req.url === '/hello') {
-    res.write('hello')
-  } else if (req.url === '/hello-zip') {
-    res.setHeader('content-encoding', 'gzip')
-    res.write(gzipSync(Buffer.from('hello')))
-  } else if (req.url === '/hello-304') {
-    res.statusCode = 304
-  } else {
-    res.statusCode = 404
-  }
-  res.end()
-}
+import Renderer from '../src/renderer'
 
 describe('cached handler', () => {
   let cached: CachedHandler
   let server: http.Server
 
-  before((done) => {
-    const port = 3001
-    cached = new CachedHandler(handler, {
-      port,
+  before(function (done) {
+    this.timeout(10000)
+    const script = require.resolve('./mock')
+    const renderer = new Renderer(script, {})
+    cached = new CachedHandler(renderer, {
       rules: [{ regex: '/hello.*', ttl: 0.5 }],
     })
     cached.cache.del('body:/hello')
     cached.cache.del('header:/hello')
-    server = new http.Server(cached.handler).listen(port, done)
+    server = new http.Server(cached.handler)
+    setTimeout(done, 2000)
   })
 
   it('miss /hello', (done) => {
@@ -40,7 +28,7 @@ describe('cached handler', () => {
         expect(res.text).to.eq('hello')
         done()
       })
-  })
+  }).timeout(100000)
 
   it('hit GET /hello', (done) => {
     request(server)
@@ -109,20 +97,43 @@ describe('cached handler', () => {
       })
   })
 
+  it('force update /hello', (done) => {
+    request(server)
+      .get('/hello')
+      .set('x-cache-status', 'update')
+      .end((err, res) => {
+        expect(res.text).to.eq('hello')
+        done()
+      })
+  }).timeout(100000)
+
+  it('force update /hello-empty', (done) => {
+    request(server)
+      .get('/hello-empty')
+      .set('x-cache-status', 'update')
+      .end((err, res) => {
+        expect(res.status).to.eq(200)
+        done()
+      })
+  })
+
   after(() => {
     server.close()
     cached.close()
   })
 })
 
-describe('cached handler', () => {
+describe('cached handler quiet', () => {
   let cached: CachedHandler
   let server: http.Server
 
-  before((done) => {
-    const port = 3001
-    cached = new CachedHandler(handler, { port, quiet: true })
-    server = new http.Server(cached.handler).listen(port, done)
+  before(function (done) {
+    this.timeout(10000)
+    const script = require.resolve('./mock')
+    const renderer = new Renderer(script, {})
+    cached = new CachedHandler(renderer, { quiet: true })
+    server = new http.Server(cached.handler)
+    setTimeout(done, 2000)
   })
 
   it('bypass /unknown', (done) => {

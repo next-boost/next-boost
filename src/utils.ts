@@ -4,45 +4,11 @@ import Cache from 'hybrid-disk-cache'
 import path from 'path'
 import { PassThrough } from 'stream'
 import { HandlerConfig } from './handler'
+import cp from 'child_process'
 
-function shouldZip(req: http.IncomingMessage): boolean {
-  const field = req.headers['accept-encoding']
-  return field !== undefined && field.indexOf('gzip') !== -1
-}
-
-function isZipped(res: http.ServerResponse): boolean {
-  const field = res.getHeader('content-encoding')
-  if (typeof field === 'number') return false
-  return field !== undefined && field.indexOf('gzip') !== -1
-}
-
-function wrappedResponse(
-  res: http.ServerResponse,
-  cache: { [key: string]: unknown }
-): http.ServerResponse {
-  const chunks: Array<Buffer> = []
-
-  const push = (...args: any[]) => {
-    const [chunk, encoding] = args
-    if (!chunk) return
-    chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk, encoding))
-  }
-
-  const _end = res.end
-  const _write = res.write
-
-  res.write = (...args: any[]) => {
-    push(...args)
-    return _write.apply(res, args)
-  }
-
-  res.end = (...args: any[]) => {
-    push(...args)
-    cache.body = Buffer.concat(chunks)
-    return _end.apply(res, args)
-  }
-
-  return res
+function isZipped(headers: { [key: string]: any }): boolean {
+  const field = headers['content-encoding']
+  return typeof field === 'string' && field.includes('gzip')
 }
 
 function log(start: [number, number], status: string, msg?: string): void {
@@ -82,8 +48,6 @@ function serveCache(
 
 function mergeConfig(c: HandlerConfig = {}) {
   const conf: HandlerConfig = {
-    hostname: 'localhost',
-    port: 3000,
     cache: { ttl: 60, tbd: 3600 },
     rules: [{ regex: '.*', ttl: 3600 }],
   }
@@ -95,7 +59,7 @@ function mergeConfig(c: HandlerConfig = {}) {
       const f = require(configFile) as HandlerConfig
       c.cache = Object.assign(f.cache || {}, c.cache || {})
       c = Object.assign(f, c)
-      console.log('> Loaded next-boost config from %s', c.filename)
+      console.log('  Loaded next-boost config from %s', c.filename)
     } catch (error) {
       throw new Error(`Failed to load ${c.filename}`)
     }
@@ -109,4 +73,10 @@ function mergeConfig(c: HandlerConfig = {}) {
   return conf
 }
 
-export { isZipped, shouldZip, log, mergeConfig, serveCache, wrappedResponse }
+function fork(modulePath: string) {
+  const isTest = process.env.NODE_ENV === 'test'
+  const options = isTest ? { execArgv: ['-r', 'ts-node/register'] } : null
+  return cp.fork(modulePath, [], options)
+}
+
+export { isZipped, fork, log, mergeConfig, serveCache }
