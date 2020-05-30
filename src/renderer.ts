@@ -80,7 +80,7 @@ process.on('message', async (msg) => {
   }
 })
 
-export default class RendererJob {
+export default class Renderer {
   private sub: ChildProcess
   private jobs: MappedJobs = {}
   handler: RequestListener

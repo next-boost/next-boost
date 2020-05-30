@@ -43,12 +43,11 @@ function wrap(
     const { matched, ttl } = matchRule(conf, req.url)
     if (!matched) return renderer.handler(req, res)
 
-    let start = process.hrtime()
+    const start = process.hrtime()
     const served = serveCache(cache, req, res)
     if (served === 'hit') return !conf.quiet && log(start, served, req.url)
 
     // send task to render in child process
-    start = process.hrtime()
     renderer.render(req, (statusCode, headers, body) => {
       const status = req.headers['x-cache-status']
       const isUpdating = status === 'update' || served === 'stale'
@@ -65,12 +64,11 @@ function wrap(
         cache.del('header:' + req.url)
       }
 
-      if (served) return
-      for (const k of Object.keys(headers)) {
-        res.setHeader(k, headers[k])
+      if (!served) {
+        for (const k in headers) res.setHeader(k, headers[k])
+        res.statusCode = statusCode
+        res.end(body)
       }
-      res.statusCode = statusCode
-      res.end(body)
     })
   }
 }
