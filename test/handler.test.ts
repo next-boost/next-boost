@@ -123,7 +123,7 @@ describe('cached handler', () => {
   })
 })
 
-describe('cached handler quiet', () => {
+describe('cached handler with different conf', () => {
   let cached: CachedHandler
   let server: http.Server
 
@@ -131,7 +131,10 @@ describe('cached handler quiet', () => {
     this.timeout(10000)
     const script = require.resolve('./mock')
     const renderer = new Renderer(script, {})
-    cached = new CachedHandler(renderer, { quiet: true })
+    cached = new CachedHandler(renderer, {
+      quiet: true,
+      paramFilter: () => true,
+    })
     server = new http.Server(cached.handler)
     setTimeout(done, 2000)
   })

@@ -3,7 +3,14 @@ import Cache from 'hybrid-disk-cache'
 import { gzipSync } from 'zlib'
 import { initPurgeTimer, stopPurgeTimer } from './cache-manager'
 import Renderer from './renderer'
-import { isZipped, log, mergeConfig, serveCache } from './utils'
+import {
+  filterUrl,
+  isZipped,
+  log,
+  mergeConfig,
+  serveCache,
+  ParamFilter,
+} from './utils'
 
 function matchRule(conf: HandlerConfig, url: string) {
   for (const rule of conf.rules) {
@@ -32,6 +39,7 @@ export interface HandlerConfig {
     path?: string
   }
   rules?: Array<URLCacheRule>
+  paramFilter?: ParamFilter
 }
 
 function wrap(
@@ -40,6 +48,7 @@ function wrap(
   renderer: Renderer
 ): http.RequestListener {
   return (req, res) => {
+    req.url = filterUrl(req.url, conf.paramFilter)
     const { matched, ttl } = matchRule(conf, req.url)
     if (!matched) return renderer.handler(req, res)
 

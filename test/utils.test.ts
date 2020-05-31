@@ -1,5 +1,5 @@
 import { expect } from 'chai'
-import { isZipped, log, mergeConfig } from '../src/utils'
+import { isZipped, log, mergeConfig, filterUrl } from '../src/utils'
 
 export const sleep = async (t: number) => {
   return new Promise((resolve) => setTimeout(resolve, t))
@@ -68,5 +68,17 @@ describe('utils', () => {
         filename: './test/fixtures/conf2.txt',
       })
     ).to.throw(/Failed to load/)
+  })
+
+  it('filter url', () => {
+    const url = `/path?p1=1&p2=2&p2=3`
+    const rv1 = filterUrl(url)
+    expect(rv1).to.eq(url)
+
+    const rv2 = filterUrl(url, (p) => !p.startsWith('p'))
+    expect(rv2).to.eq('/path')
+
+    const rv3 = filterUrl(url, (p) => p !== 'p1')
+    expect(rv3).to.eq('/path?p2=2&p2=3')
   })
 })

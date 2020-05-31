@@ -1,10 +1,10 @@
+import cp from 'child_process'
 import fs from 'fs'
 import http from 'http'
 import Cache from 'hybrid-disk-cache'
 import path from 'path'
 import { PassThrough } from 'stream'
 import { HandlerConfig } from './handler'
-import cp from 'child_process'
 
 function isZipped(headers: { [key: string]: any }): boolean {
   const field = headers['content-encoding']
@@ -71,6 +71,20 @@ function mergeConfig(c: HandlerConfig = {}) {
   Object.assign(conf, c)
 
   return conf
+}
+
+export type ParamFilter = (param: string) => boolean
+
+export function filterUrl(url: string, filter?: ParamFilter) {
+  if (!filter) return url
+
+  const [p0, p1] = url.split('?', 2)
+  const params = new URLSearchParams(p1)
+  const keysToDelete = [...params.keys()].filter((k) => !filter(k))
+  for (const k of keysToDelete) params.delete(k)
+
+  const qs = params.toString()
+  return qs ? p0 + '?' + qs : p0
 }
 
 function fork(modulePath: string) {
