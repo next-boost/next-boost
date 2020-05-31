@@ -8,15 +8,15 @@ export type RequestListener = (
 ) => Promise<void> | void
 
 type RenderOptions = {
-  url: string
+  url?: string
   method?: string
   headers?: { [key: string]: any }
 }
 
-type RenderResult = {
+export type RenderResult = {
   statusCode: number
   headers: { [key: string]: any }
-  body: Buffer
+  body: unknown
 }
 
 let handler: RequestListener

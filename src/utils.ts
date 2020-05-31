@@ -1,9 +1,10 @@
 import fs from 'fs'
-import http from 'http'
+import http, { ServerResponse } from 'http'
 import Cache from 'hybrid-disk-cache'
 import path from 'path'
 import { PassThrough } from 'stream'
 import { HandlerConfig } from './handler'
+import { RenderResult } from './renderer'
 
 function isZipped(headers: { [key: string]: any }): boolean {
   const field = headers['content-encoding']
@@ -45,6 +46,12 @@ function serveCache(
   return status
 }
 
+function serve(res: ServerResponse, rv: RenderResult) {
+  for (const k in rv.headers) res.setHeader(k, rv.headers[k])
+  res.statusCode = rv.statusCode
+  res.end(Buffer.from(rv.body))
+}
+
 function mergeConfig(c: HandlerConfig = {}) {
   const conf: HandlerConfig = {
     cache: { ttl: 60, tbd: 3600 },
@@ -74,7 +81,7 @@ function mergeConfig(c: HandlerConfig = {}) {
 
 export type ParamFilter = (param: string) => boolean
 
-export function filterUrl(url: string, filter?: ParamFilter) {
+function filterUrl(url: string, filter?: ParamFilter) {
   if (!filter) return url
 
   const [p0, p1] = url.split('?', 2)
@@ -86,4 +93,4 @@ export function filterUrl(url: string, filter?: ParamFilter) {
   return qs ? p0 + '?' + qs : p0
 }
 
-export { isZipped, log, mergeConfig, serveCache }
+export { isZipped, log, mergeConfig, serveCache, serve, filterUrl }

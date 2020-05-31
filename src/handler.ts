@@ -1,15 +1,15 @@
 import http from 'http'
 import Cache from 'hybrid-disk-cache'
 import { gzipSync } from 'zlib'
-import Renderer, { InitArgs } from './renderer'
 import { initPurgeTimer, stopPurgeTimer } from './cache-manager'
-// import Renderer from './renderer'
+import Renderer, { InitArgs } from './renderer'
 import {
   filterUrl,
   isZipped,
   log,
   mergeConfig,
   ParamFilter,
+  serve,
   serveCache,
 } from './utils'
 
@@ -45,12 +45,14 @@ export interface HandlerConfig {
 
 type RendererType = ReturnType<typeof Renderer>
 
-function wrap(
+type WrappedHandler = (
   cache: Cache,
   conf: HandlerConfig,
   renderer: RendererType,
   plainHandler: http.RequestListener
-): http.RequestListener {
+) => http.RequestListener
+
+const wrap: WrappedHandler = (cache, conf, renderer, plainHandler) => {
   return async (req, res) => {
     req.url = filterUrl(req.url, conf.paramFilter)
     const { matched, ttl } = matchRule(conf, req.url)
@@ -61,28 +63,24 @@ function wrap(
     if (served === 'hit') return !conf.quiet && log(start, served, req.url)
 
     // send task to render in child process
-    const { statusCode, headers, body: bodyAsJSON } = await renderer.render({
+    const rv = await renderer.render({
       url: req.url,
       headers: req.headers,
       method: req.method,
     })
+    // rv.body is a Buffer in JSON format: { type: 'Buffer', data: [...] }
+    const body = Buffer.from(rv.body)
+    if (!served) serve(res, rv)
 
-    const body = Buffer.from(bodyAsJSON)
     const status = req.headers['x-cache-status']
     const isUpdating = status === 'update' || served === 'stale'
     if (!conf.quiet) log(start, isUpdating ? 'update' : 'miss', req.url)
 
-    if (!served) {
-      for (const k in headers) res.setHeader(k, headers[k])
-      res.statusCode = statusCode
-      res.end(body)
-    }
-
-    if (statusCode === 200 && body.length > 0) {
+    if (rv.statusCode === 200 && body.length > 0) {
       // save gzipped data
-      const buf = isZipped(headers) ? Buffer.from(body) : gzipSync(body)
+      const buf = isZipped(rv.headers) ? body : gzipSync(body)
       cache.set('body:' + req.url, buf, ttl)
-      cache.set('header:' + req.url, toBuffer(headers), ttl)
+      cache.set('header:' + req.url, toBuffer(rv.headers), ttl)
     } else if (isUpdating) {
       // updating but get no result
       cache.del('body:' + req.url)
