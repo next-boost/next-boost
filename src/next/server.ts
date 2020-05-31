@@ -2,7 +2,6 @@
 import http from 'http'
 import { Argv, parse } from '../cli'
 import CachedHandler from '../handler'
-import Renderer from '../renderer'
 
 const serve = async (argv: Argv) => {
   const port = (argv['--port'] as number) || 3000
@@ -12,8 +11,8 @@ const serve = async (argv: Argv) => {
   const dir = (argv['dir'] as string) || '.'
 
   const script = require.resolve('./init')
-  const renderer = new Renderer(script, { dir, dev: false })
-  const cached = new CachedHandler(renderer, { quiet })
+  const rendererArgs = { script, args: { dir, dev: false } }
+  const cached = await CachedHandler(rendererArgs, { quiet })
 
   const server = new http.Server(cached.handler)
   server.listen(port, hostname, () => {

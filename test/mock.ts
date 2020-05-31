@@ -1,10 +1,7 @@
 import { gzipSync } from 'zlib'
 import { RequestListener } from '../src/renderer'
 
-export default async function init(args: {
-  [key: string]: any
-}): Promise<RequestListener> {
-  console.log('mock inited with %s', args)
+export default async function init(): Promise<RequestListener> {
   const cb: RequestListener = (req, res) => {
     if (req.url === '/hello') {
       res.write('hello')

@@ -1,4 +1,3 @@
-import cp from 'child_process'
 import fs from 'fs'
 import http from 'http'
 import Cache from 'hybrid-disk-cache'
@@ -87,10 +86,4 @@ export function filterUrl(url: string, filter?: ParamFilter) {
   return qs ? p0 + '?' + qs : p0
 }
 
-function fork(modulePath: string) {
-  const isTest = process.env.NODE_ENV === 'test'
-  const options = isTest ? { execArgv: ['-r', 'ts-node/register'] } : null
-  return cp.fork(modulePath, [], options)
-}
-
-export { isZipped, fork, log, mergeConfig, serveCache }
+export { isZipped, log, mergeConfig, serveCache }

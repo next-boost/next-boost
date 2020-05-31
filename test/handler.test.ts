@@ -2,23 +2,25 @@ import { expect } from 'chai'
 import http from 'http'
 import request from 'supertest'
 import CachedHandler from '../src/handler'
-import Renderer from '../src/renderer'
+// import Renderer from '../src/renderer'
+// import Renderer from '../src/renderer2'
+type CHReturn = ReturnType<typeof CachedHandler> extends Promise<infer T>
+  ? T
+  : never
 
 describe('cached handler', () => {
-  let cached: CachedHandler
+  let cached: CHReturn
   let server: http.Server
 
-  before(function (done) {
-    this.timeout(10000)
+  before(async function () {
     const script = require.resolve('./mock')
-    const renderer = new Renderer(script, {})
-    cached = new CachedHandler(renderer, {
-      rules: [{ regex: '/hello.*', ttl: 0.5 }],
-    })
+    cached = await CachedHandler(
+      { script },
+      { rules: [{ regex: '/hello.*', ttl: 0.5 }] }
+    )
     cached.cache.del('body:/hello')
     cached.cache.del('header:/hello')
     server = new http.Server(cached.handler)
-    setTimeout(done, 2000)
   })
 
   it('miss /hello', (done) => {
@@ -28,7 +30,7 @@ describe('cached handler', () => {
         expect(res.text).to.eq('hello')
         done()
       })
-  }).timeout(100000)
+  })
 
   it('hit GET /hello', (done) => {
     request(server)
@@ -124,19 +126,16 @@ describe('cached handler', () => {
 })
 
 describe('cached handler with different conf', () => {
-  let cached: CachedHandler
+  let cached: CHReturn
   let server: http.Server
 
-  before(function (done) {
-    this.timeout(10000)
+  before(async function () {
     const script = require.resolve('./mock')
-    const renderer = new Renderer(script, {})
-    cached = new CachedHandler(renderer, {
-      quiet: true,
-      paramFilter: () => true,
-    })
+    cached = await CachedHandler(
+      { script },
+      { quiet: true, paramFilter: () => true }
+    )
     server = new http.Server(cached.handler)
-    setTimeout(done, 2000)
   })
 
   it('bypass /unknown', (done) => {
