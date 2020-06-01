@@ -1,13 +1,16 @@
 import http from 'http'
 import Cache from 'hybrid-disk-cache'
 import { gzipSync } from 'zlib'
-import { initPurgeTimer, revalidate, stopPurgeTimer } from './cache-manager'
+import { initPurgeTimer, stopPurgeTimer } from './cache-manager'
+import Renderer, { InitArgs } from './renderer'
 import {
+  filterUrl,
   isZipped,
   log,
   mergeConfig,
+  ParamFilter,
+  serve,
   serveCache,
-  wrappedResponse,
 } from './utils'
 
 function matchRule(conf: HandlerConfig, url: string) {
@@ -29,8 +32,6 @@ interface URLCacheRule {
 }
 
 export interface HandlerConfig {
-  hostname?: string
-  port?: number
   filename?: string
   quiet?: boolean
   cache?: {
@@ -39,74 +40,82 @@ export interface HandlerConfig {
     path?: string
   }
   rules?: Array<URLCacheRule>
+  paramFilter?: ParamFilter
 }
 
-function wrap(
+type RendererType = ReturnType<typeof Renderer>
+
+type WrappedHandler = (
   cache: Cache,
   conf: HandlerConfig,
-  handler: http.RequestListener
-): http.RequestListener {
-  return (req, res) => {
+  renderer: RendererType,
+  plainHandler: http.RequestListener
+) => http.RequestListener
+
+const wrap: WrappedHandler = (cache, conf, renderer, plainHandler) => {
+  return async (req, res) => {
+    req.url = filterUrl(req.url, conf.paramFilter)
     const { matched, ttl } = matchRule(conf, req.url)
-    if (!matched) return handler(req, res)
+    if (!matched) return plainHandler(req, res)
 
-    const buf: { [key: string]: any } = {}
     const start = process.hrtime()
-
     const served = serveCache(cache, req, res)
-    if (served === 'stale') revalidate(conf, req.url)
-    if (served) return !conf.quiet && log(start, served, req.url)
+    if (served === 'hit') return !conf.quiet && log(start, served, req.url)
 
-    res.on('close', () => {
-      const isUpdating = req.headers['x-cache-status'] === 'update'
-      if (!conf.quiet) log(start, isUpdating ? 'update' : 'miss', req.url)
-
-      if (res.statusCode === 200 && buf.body) {
-        // save gzipped data
-        if (!isZipped(res)) buf.body = gzipSync(buf.body)
-        cache.set('body:' + req.url, buf.body, ttl)
-        cache.set('header:' + req.url, toBuffer(res.getHeaders()), ttl)
-      } else if (isUpdating) {
-        cache.del('body:' + req.url)
-        cache.del('header:' + req.url)
-      }
-      // This happens when browser send If-None-Match with etag
-      // and the contents are identical. Server will return no body.
-      // Here we use the revalidation process to cache the page later
-      if (res.statusCode === 304) {
-        revalidate(conf, req.url)
-      }
+    // send task to render in child process
+    const rv = await renderer.render({
+      url: req.url,
+      headers: req.headers,
+      method: req.method,
     })
+    // rv.body is a Buffer in JSON format: { type: 'Buffer', data: [...] }
+    const body = Buffer.from(rv.body)
+    if (!served) serve(res, rv)
 
-    handler(req, wrappedResponse(res, buf))
+    const status = req.headers['x-cache-status']
+    const isUpdating = status === 'update' || served === 'stale'
+    if (!conf.quiet) log(start, isUpdating ? 'update' : 'miss', req.url)
+
+    if (rv.statusCode === 200 && body.length > 0) {
+      // save gzipped data
+      const buf = isZipped(rv.headers) ? body : gzipSync(body)
+      cache.set('body:' + req.url, buf, ttl)
+      cache.set('header:' + req.url, toBuffer(rv.headers), ttl)
+    } else if (isUpdating) {
+      // updating but get no result
+      cache.del('body:' + req.url)
+      cache.del('header:' + req.url)
+    }
   }
 }
 
-export default class CachedHandler {
-  cache: Cache
-  handler: http.RequestListener
+export default async function CachedHandler(
+  args: InitArgs,
+  options?: HandlerConfig
+) {
+  console.log('> Preparing cached handler')
 
-  constructor(
-    handler: (
-      req: http.IncomingMessage,
-      res: http.ServerResponse
-    ) => Promise<void> | void,
-    options?: HandlerConfig
-  ) {
-    const conf = mergeConfig(options)
+  // merge config
+  const conf = mergeConfig(options)
 
-    // the cache
-    this.cache = new Cache(conf.cache)
-    console.log(`> Cache located at ${this.cache.path}`)
+  // the cache
+  const cache = new Cache(conf.cache)
+  console.log(`  Cache located at ${cache.path}`)
 
-    // purge timer
-    initPurgeTimer(this.cache)
+  // purge timer
+  initPurgeTimer(cache)
 
-    // init the child process for revalidate and cache purge
-    this.handler = wrap(this.cache, conf, handler)
-  }
+  const renderer = Renderer()
+  await renderer.init(args)
+  const plain = await require(args.script).default(args)
 
-  close() {
-    stopPurgeTimer()
+  // init the child process for revalidate and cache purge
+  return {
+    handler: wrap(cache, conf, renderer, plain),
+    cache,
+    close: () => {
+      stopPurgeTimer()
+      renderer.kill()
+    },
   }
 }

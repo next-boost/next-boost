@@ -9,14 +9,14 @@ const serve = async (argv: Argv) => {
   const hostname = argv['--hostname'] as string
   const quiet = argv['--quiet'] as boolean
   const dir = (argv['dir'] as string) || '.'
-  const app = require('next')({ dev: false, dir })
-  const handler = app.getRequestHandler()
-  const cached = new CachedHandler(handler, { hostname, port, quiet })
 
-  await app.prepare()
+  const script = require.resolve('./init')
+  const rendererArgs = { script, args: { dir, dev: false } }
+  const cached = await CachedHandler(rendererArgs, { quiet })
+
   const server = new http.Server(cached.handler)
   server.listen(port, hostname, () => {
-    console.log(`> Server on http://${hostname || 'localhost'}:${port}`)
+    console.log(`> Serving on http://${hostname || 'localhost'}:${port}`)
   })
   process.on('SIGTERM', () => {
     console.log('> Shutting down...')
