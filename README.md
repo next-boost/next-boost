@@ -4,6 +4,10 @@
 
 `next-boost` is a middleware which adds a disk cache layer to your SSR applications. It was built originally for `Next.js` SSR applications and can be used in any node.js `http.Server` based application.
 
+```bash
+$ npm install next-boost --save
+```
+
 ## Features
 
 - Drop-in replacement for Next.js's production mode: `next start`
@@ -14,7 +18,7 @@
     - no need to start a cache layer server like memcached, redis, mongodb and etc.
     - great performance, and may even have [better performace than pure file system](https://www.sqlite.org/fasterthanfs.html) cache
     - portability on major platforms
-- Small footprint: [148 LOC](https://coveralls.io/github/rjyo/next-boost?branch=master) and 1 npm dependency for the cache [(`hybrid-disk-cache`)](https://github.com/rjyo/hybrid-disk-cache)
+- Small footprint: [148 LOC](https://coveralls.io/github/rjyo/next-boost?branch=master) and only 2 npm dependencies. [(`hybrid-disk-cache`)](https://github.com/rjyo/hybrid-disk-cache) and [(`multee`)](https://github.com/rjyo/multee), both written by me (too ;-P).
 - Used in production with 300K pages cached
 
 ## How it works
@@ -26,12 +30,6 @@ There are 2 parameters to control the behavior of the cache:
 - `ttl (time-to-live)`: After `ttl`, the cache will be revalidated. And a cached page's `ttl` will be updated when a page is revalidated.
 - `tbd (time-before-deletion)`: When a page is not hit again in `ttl + tbd` seconds, it will be completely remove from cache.
 
-## Installation
-
-```bash
-$ npm install next-boost --save
-```
-
 ## Drop-in replacement for Next.js
 
 After install the package, just change the start script from `next start` to `next-boost`. All `next start`'s command line arguments, like `-p` for specifing the port, are compatible.
@@ -39,7 +37,7 @@ After install the package, just change the start script from `next start` to `ne
 ```
  "scripts": {
     ...
-    "start": "next-boost",
+    "start": "next-boost", // previously `next start`
     ...
   },
 ```
@@ -74,7 +72,7 @@ async function start() {
 start()
 ```
 
-Check the runable example under `examples/nodejs`
+You can run the example under `examples/nodejs`.
 
 ## Advanced Usages
 
@@ -201,6 +199,7 @@ Check the underlying [`hybrid-disk-cache`](https://github.com/rjyo/next-boost)'s
 
 - For architecture with multiple load-balanced rendering servers, the benefit of using `next-boost` is limited. Until the url is hit on every backend server, it can still miss the cache. Though sharing the cache on network file systems with servers might help.
 - For session/cookie based pages, like user's dashboard and etc, next-boost is not a good choice as the page is updated in the background and the user might ha.
+- `worker_threads` is a relatively "new" API and was added since node.js 10.5.0. `next-boost` was only tested on node.js LTS (12.x).
 
 ## FAQs
 
