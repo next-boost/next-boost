@@ -8,14 +8,14 @@
 
 - Drop-in replacement for Next.js's production mode: `next start`
 - Greatly reducing the server TTFB (time-to-first-byte)
+- Non-blocking main process for cache-serving and using `worker_threads` for SSR
 - By using [hybird-disk-cache](https://github.com/rjyo/hybrid-disk-cache) based on SQLite3 and the file system, `next-boost` has
     - no memory capacity limit, and works great on cheap VPSs
     - no need to start a cache layer server like memcached, redis, mongodb and etc.
     - great performance, and may even have [better performace than pure file system](https://www.sqlite.org/fasterthanfs.html) cache
     - portability on major platforms
-- Small footprint: [143 LOC](https://coveralls.io/github/rjyo/next-boost?branch=master) and 1 npm dependency for the cache [(`hybrid-disk-cache`)](https://github.com/rjyo/hybrid-disk-cache)
+- Small footprint: [148 LOC](https://coveralls.io/github/rjyo/next-boost?branch=master) and 1 npm dependency for the cache [(`hybrid-disk-cache`)](https://github.com/rjyo/hybrid-disk-cache)
 - Used in production with 300K pages cached
-- 100% test coverage
 
 ## How it works
 
@@ -32,9 +32,7 @@ There are 2 parameters to control the behavior of the cache:
 $ npm install next-boost --save
 ```
 
-## Basic Usage
-
-### Drop-in replacement for Next.js
+## Drop-in replacement for Next.js
 
 After install the package, just change the start script from `next start` to `next-boost`. All `next start`'s command line arguments, like `-p` for specifing the port, are compatible.
 
@@ -46,54 +44,78 @@ After install the package, just change the start script from `next start` to `ne
   },
 ```
 
-### Programmatical Usage
+## An example
 
 ```javascript
+// server.js
+const init = () => {
+  // start your server here
+  console.log('prepare and start server')
+  // return the listener, a sluggish page that takes 2 seconds to render
+  return (_, res) => setTimeout(() => res.end(new Date().toISOString()), 2000)
+}
+
+module.exports = { default: init }
+```
+
+```javascript
+// start.js
 const http = require('http')
-const CachedHandler = require('../dist/handler').default
+const CachedHandler = require('next-boost').default
+const script = require.resolve('./listener')
+const opts = { rules: [{ regex: '.*', ttl: 1 }] }
 
-// a sluggish page
-const handler = (req, res) => setTimeout(() => res.end(new Date().toISOString()), 2000)
-const port = 3000
-// revalidate all pages after 1 second
-const opts = { port, rules: [{ regex: '.*', ttl: 1 }] }
-const cached = new CachedHandler(handler, opts)
-const server = new http.Server(cached.handler)
-server.listen(port, () => {
-  console.log(`> Server on http://localhost:${port}`)
-})
+async function start() {
+  const cached = await CachedHandler({ script }, opts)
+  const server = new http.Server(cached.handler)
+  server.listen(3000, () => console.log(`> Server on http://localhost:3000`))
+}
+
+start()
 ```
 
-The handler is just a pure [NodeJS requestListener](https://nodejs.org/api/http.html#http_http_createserver_options_requestlistener). And if you are using Next.js's custom server, it will be `app.getRequestHandler()`. Check next-boost's [cli implementation](https://github.com/rjyo/next-boost/blob/master/src/next/server.ts) here.
+Check the runable example under `examples/nodejs`
 
-The server log will be something like:
+## Advanced Usages
 
-```
-> Cache located at /tmp
-> Server on http://localhost:3000
-> Cache manager inited, will start to purge in 3600s
-```
+### Deleting/Revalidating a Single URL
 
-After the server started, try to access the server serveral times with your browser or `curl http://localhost:3000`. With the cache layer, only the first response is sluggish and the rests are super fast.
+By sending a GET with header `x-cache-status:update` to the URL, the cache will be revalidated. And if the page doesn't exists anymore, the cache will be deleted.
+
+    curl -H x-cache-status:update https://the_server_name.com/path_a
+
+### Batch Deleting/Revalidating
+
+By sending request with the `x-cache-status:update` header to a certain URL, you can delete the cache for one page. If you want to delete pages for mutiple pages. You can operate the cache directly:
 
 ```bash
-2s6.9ms | miss  : /    # The first one takes more than 2 seconds
-  0.1ms | hit   : /    # The second request only takes 0.1ms
-  0.1ms | stale : /    # As we set ttl to 1 seconds, revalidating process has kicked in
-  0.1ms | stale : /    # Until updated, the stale result is always served
-2s3.9ms | update: /    # It took 2s+ to update on background
+sqlite3 /cache_path/cache.db "update cache set ttl=0 where key like '%/url/a%';"
 ```
 
-### Options
+This will force all urls containing `/url/a` to be revalidated when next time accessed.
+
+Deleting `cache_path` will remove all the caches.
+
+### Filtering Query Parameters
+
+By default, each page with different URLs will be cached separately. But in some cases you would like, `/path_a?utm_source=twitter` to be served with the same contents of `/path_a`. `paramFilter` is for filtering the query parameters.
+
+```javascript
+// in .next-boost.js
+{
+  ...
+  paramFilter: (p) => p !== 'utm_source'
+}
+```
+
+## All Configurable Options
 
 If available, `.next-boost.js` at project root will be loaded. If you use next-boost programmatically, the filename can be changed in options you passed to `CachedHandler`.
 
-Type is defined as below:
+The config's type is defined as below:
 
 ```typescript
 interface HandlerConfig {
-  hostname?: string
-  port?: number
   quiet?: boolean
   filename?: string
   cache?: {
@@ -102,12 +124,15 @@ interface HandlerConfig {
     path?: string
   }
   rules?: Array<URLCacheRule>
+  paramFilter?: ParamFilter
 }
 
 interface URLCacheRule {
   regex: string
   ttl: number
 }
+
+type ParamFilter = (param: string) => boolean
 ```
 
 tips: If you are using `next-boost` with Next.js directly, you may want to use the config file.
@@ -127,6 +152,8 @@ module.exports = {
 Above: only caching pages with URL start with `/blog`.
 
 ## Performance
+
+By using `worker_threads`, the CPU-heavy SSR rendering will not blocking the main process from serving the cache.
 
 Here are the comparision of using `ApacheBench` on a blog post fetched from database. HTML prerendered and the db operation takes around 10~20ms. The page takes around 200ms for Next.js to render.
 

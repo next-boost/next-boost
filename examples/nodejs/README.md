@@ -4,5 +4,5 @@ All requests will be cached.
 
 ```
 $ npm install
-$ node node-server.js
+$ node start.js
 ```
