@@ -9,6 +9,6 @@
     "forceConsistentCasingInFileNames": true,
   },
   "include": [
-    "src/**/*.ts"
+    "src/**/*.ts", "src/worker.js", "src/main.js", "src/w.js"
   ]
 }
