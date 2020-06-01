@@ -1,6 +1,6 @@
 import mock from '@rjyo/mock-http'
 import { IncomingMessage, ServerResponse } from 'http'
-import { createHandler, launch } from './child'
+import { createHandler, start } from 'multee/worker'
 
 export type RequestListener = (
   req: IncomingMessage,
@@ -48,10 +48,10 @@ const render = createHandler(
 )
 
 export default () => {
-  const child = launch(__filename)
+  const child = start(__filename)
   return {
     init: init(child),
     render: render(child),
-    kill: () => child.kill(),
+    kill: () => child.terminate(),
   }
 }

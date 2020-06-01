@@ -10,8 +10,8 @@
     "build": "tsc",
     "prepublishOnly": "rm -rf dist && npm run build",
     "lint": "eslint src/*.ts test/*.ts",
-    "test": "NODE_ENV=test mocha --require ts-node/register test/**/*.test.ts",
-    "test-cov": "NODE_ENV=test nyc mocha test/*.test.ts"
+    "test": "mocha",
+    "test-cov": "nyc mocha"
   },
   "files": [
     "dist",
@@ -27,9 +27,6 @@
     ],
     "extension": [
       ".ts"
-    ],
-    "require": [
-      "ts-node/register"
     ],
     "reporter": [
       "text",
@@ -48,7 +45,7 @@
   "dependencies": {
     "@rjyo/mock-http": "^1.1.1",
     "hybrid-disk-cache": "^0.1.2",
-    "uuid": "^8.1.0"
+    "multee": "^0.1.2"
   },
   "peerDependencies": {
     "next": "^9.0.0"

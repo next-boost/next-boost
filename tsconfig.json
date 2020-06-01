@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "target": "es2018",
+    "target": "es6",
     "module": "commonjs",
     "declaration": true,
     "outDir": "./dist",
@@ -9,6 +9,6 @@
     "forceConsistentCasingInFileNames": true,
   },
   "include": [
-    "src/**/*.ts", "src/worker.js", "src/main.js", "src/w.js"
+    "src/**/*.ts"
   ]
 }
