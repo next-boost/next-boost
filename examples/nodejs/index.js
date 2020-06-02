@@ -1,7 +1,7 @@
 const http = require('http')
 const CachedHandler = require('next-boost').default
 const opts = { rules: [{ regex: '.*', ttl: 1 }] }
-const script = require.resolve('./listener')
+const script = require.resolve('./server')
 
 async function start() {
   const cached = await CachedHandler({ script }, opts)
