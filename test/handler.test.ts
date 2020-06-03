@@ -13,6 +13,7 @@ describe('cached handler', () => {
   let server: http.Server
 
   before(async function () {
+    this.timeout(10000)
     const script = require.resolve('./mock')
     cached = await CachedHandler(
       { script },
@@ -30,7 +31,7 @@ describe('cached handler', () => {
         expect(res.text).to.eq('hello')
         done()
       })
-  })
+  }).timeout(5000)
 
   it('hit GET /hello', (done) => {
     request(server)
@@ -39,7 +40,7 @@ describe('cached handler', () => {
         expect(res.text).to.eq('hello')
         done()
       })
-  })
+  }).timeout(5000)
 
   it('hit HEAD /hello', (done) => {
     request(server)
@@ -48,7 +49,7 @@ describe('cached handler', () => {
         expect(res.status).to.eq(200)
         done()
       })
-  })
+  }).timeout(5000)
 
   it('stale /hello', (done) => {
     setTimeout(() => {
