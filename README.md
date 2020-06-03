@@ -13,12 +13,12 @@ $ npm install next-boost --save
 - Drop-in replacement for Next.js's production mode: `next start`
 - Greatly reducing the server TTFB (time-to-first-byte)
 - Non-blocking main process for cache-serving and using `worker_threads` for SSR
-- By using [hybird-disk-cache](https://github.com/rjyo/hybrid-disk-cache) based on SQLite3 and the file system, `next-boost` has
+- By using a [database-disk-hybrid cache](https://github.com/rjyo/hybrid-disk-cache), `next-boost` has
     - no memory capacity limit, and works great on cheap VPSs
-    - no need to start a cache layer server like memcached, redis, mongodb and etc.
+    - no need to add a cache layer server like varnish, nginx Cache and etc.
     - great performance, and may even have [better performace than pure file system](https://www.sqlite.org/fasterthanfs.html) cache
     - portability on major platforms
-- Small footprint: [148 LOC](https://coveralls.io/github/rjyo/next-boost?branch=master) and only 2 npm dependencies. [(`hybrid-disk-cache`)](https://github.com/rjyo/hybrid-disk-cache) and [(`multee`)](https://github.com/rjyo/multee), both written by me (too ;-P).
+- Small footprint: [148 LOC](https://coveralls.io/github/rjyo/next-boost?branch=master)
 - Used in production with 300K pages cached
 
 ## How it works
