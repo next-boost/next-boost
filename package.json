@@ -43,9 +43,8 @@
   "homepage": "https://github.com/rjyo/next-boost",
   "license": "MIT",
   "dependencies": {
-    "@rjyo/mock-http": "^1.1.2",
     "hybrid-disk-cache": "^0.1.3",
-    "multee": "^0.1.2"
+    "multee": "^0.1.5"
   },
   "peerDependencies": {
     "next": "^9.0.0"

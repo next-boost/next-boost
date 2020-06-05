@@ -64,10 +64,11 @@ const wrap: WrappedHandler = (cache, conf, renderer, plainHandler) => {
 
     // send task to render in child process
     const rv = await renderer.render({
-      url: req.url,
+      path: req.url,
       headers: req.headers,
       method: req.method,
     })
+
     // rv.body is a Buffer in JSON format: { type: 'Buffer', data: [...] }
     const body = Buffer.from(rv.body)
     if (!served) serve(res, rv)

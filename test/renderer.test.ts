@@ -13,7 +13,7 @@ describe('renderer', () => {
 
   it('render correctly', async () => {
     const { statusCode, body } = await renderer.render({
-      url: '/hello',
+      path: '/hello',
       method: 'GET',
     })
     expect(statusCode).eq(200)
