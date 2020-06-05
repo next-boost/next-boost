@@ -1,9 +1,7 @@
-import { expect } from 'chai'
 import http from 'http'
 import request from 'supertest'
 import CachedHandler from '../src/handler'
-// import Renderer from '../src/renderer'
-// import Renderer from '../src/renderer2'
+
 type CHReturn = ReturnType<typeof CachedHandler> extends Promise<infer T>
   ? T
   : never
@@ -12,8 +10,7 @@ describe('cached handler', () => {
   let cached: CHReturn
   let server: http.Server
 
-  before(async function () {
-    this.timeout(10000)
+  beforeAll(async function () {
     const script = require.resolve('./mock')
     cached = await CachedHandler(
       { script },
@@ -28,56 +25,56 @@ describe('cached handler', () => {
     request(server)
       .get('/hello')
       .end((err, res) => {
-        expect(res.text).to.eq('hello')
+        expect(res.text).toEqual('hello')
         done()
       })
-  }).timeout(5000)
+  })
 
   it('hit GET /hello', (done) => {
     request(server)
       .get('/hello')
       .end((err, res) => {
-        expect(res.text).to.eq('hello')
+        expect(res.text).toEqual('hello')
         done()
       })
-  }).timeout(5000)
+  })
 
   it('hit HEAD /hello', (done) => {
     request(server)
       .head('/hello')
       .end((err, res) => {
-        expect(res.status).to.eq(200)
+        expect(res.status).toEqual(200)
         done()
       })
-  }).timeout(5000)
+  })
 
   it('stale /hello', (done) => {
     setTimeout(() => {
       request(server)
         .get('/hello')
         .end((err, res) => {
-          expect(res.text).to.eq('hello')
+          expect(res.text).toEqual('hello')
           done()
         })
     }, 1000)
-  }).timeout(5000)
+  })
 
   it('update /hello', (done) => {
     request(server)
       .get('/hello')
       .end((err, res) => {
-        expect(res.text).to.eq('hello')
+        expect(res.text).toEqual('hello')
       })
     setTimeout(() => {
       done()
     }, 1000)
-  }).timeout(5000)
+  })
 
   it('update /hello-304', (done) => {
     request(server)
       .get('/hello-304')
       .end((err, res) => {
-        expect(res.status).to.eq(304)
+        expect(res.status).toEqual(304)
         done()
       })
   })
@@ -86,7 +83,7 @@ describe('cached handler', () => {
     request(server)
       .get('/hello-zip')
       .end((err, res) => {
-        expect(res.text).to.eq('hello')
+        expect(res.text).toEqual('hello')
         done()
       })
   })
@@ -95,7 +92,7 @@ describe('cached handler', () => {
     request(server)
       .get('/unknown')
       .end((err, res) => {
-        expect(res.status).to.eq(404)
+        expect(res.status).toEqual(404)
         done()
       })
   })
@@ -105,22 +102,22 @@ describe('cached handler', () => {
       .get('/hello')
       .set('x-cache-status', 'update')
       .end((err, res) => {
-        expect(res.text).to.eq('hello')
+        expect(res.text).toEqual('hello')
         done()
       })
-  }).timeout(100000)
+  })
 
   it('force update /hello-empty', (done) => {
     request(server)
       .get('/hello-empty')
       .set('x-cache-status', 'update')
       .end((err, res) => {
-        expect(res.status).to.eq(200)
+        expect(res.status).toEqual(200)
         done()
       })
   })
 
-  after(() => {
+  afterAll(() => {
     server.close()
     cached.close()
   })
@@ -130,7 +127,7 @@ describe('cached handler with different conf', () => {
   let cached: CHReturn
   let server: http.Server
 
-  before(async function () {
+  beforeAll(async function () {
     const script = require.resolve('./mock')
     cached = await CachedHandler(
       { script },
@@ -143,12 +140,12 @@ describe('cached handler with different conf', () => {
     request(server)
       .get('/unknown')
       .end((_, res) => {
-        expect(res.status).to.eq(404)
+        expect(res.status).toEqual(404)
         done()
       })
   })
 
-  after(() => {
+  afterAll(() => {
     server.close()
     cached.close()
   })

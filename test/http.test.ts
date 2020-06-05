@@ -1,21 +1,19 @@
-import { expect } from 'chai'
 import http from 'http'
+import Cache from 'hybrid-disk-cache'
 import request from 'supertest'
 import { gzipSync } from 'zlib'
-import Cache from 'hybrid-disk-cache'
 import { serveCache } from '../src/utils'
 
 describe('serve cache', () => {
   const cache = new Cache()
   const url = '/p1'
   cache.set('body:' + url, gzipSync(Buffer.from('AAA')))
-  cache.set(
-    'header:' + url,
-    Buffer.from(JSON.stringify({ 'header-x': 'value-x' }))
-  )
+  const data = Buffer.from(JSON.stringify({ 'header-x': 'value-x' }))
+  cache.set('header:' + url, data)
+
   const server = new http.Server((req, res) => {
     const rv = serveCache(cache, req, res)
-    expect(rv).to.eq('hit')
+    expect(rv).toEqual('hit')
   })
 
   it('cached contents', (done) => {
@@ -23,9 +21,9 @@ describe('serve cache', () => {
       .get(url)
       .expect(200)
       .end((err, res) => {
-        expect(err).to.be.null
-        expect(res.text).to.eq('AAA')
-        expect(res.header['header-x']).to.eq('value-x')
+        expect(err).toBeNull()
+        expect(res.text).toEqual('AAA')
+        expect(res.header['header-x']).toEqual('value-x')
         done()
       })
   })
@@ -33,7 +31,7 @@ describe('serve cache', () => {
   it('skip cache when x-cache-status = update', (done) => {
     const server = new http.Server((req, res) => {
       const status = serveCache(cache, req, res)
-      expect(status).to.be.false
+      expect(status).toBeFalsy()
       res.end('BBB')
     })
     request(server)
@@ -42,7 +40,7 @@ describe('serve cache', () => {
       .set('x-cache-status', 'update')
       .expect(200)
       .end((err, res) => {
-        expect(res.text).to.eq('BBB')
+        expect(res.text).toEqual('BBB')
         done()
       })
   })
