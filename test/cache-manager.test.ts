@@ -14,5 +14,5 @@ describe('cache manager', () => {
     }
     initPurgeTimer(cache)
     initPurgeTimer(cache)
-  }).timeout(5000)
+  })
 })

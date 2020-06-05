@@ -1,11 +1,9 @@
-import { expect } from 'chai'
 import Renderer from '../src/renderer'
 
 describe('renderer', () => {
   let renderer: ReturnType<typeof Renderer>
 
-  before(async function () {
-    this.timeout(10000)
+  beforeAll(async function () {
     const script = require.resolve('./mock')
     renderer = Renderer()
     await renderer.init({ script })
@@ -16,13 +14,13 @@ describe('renderer', () => {
       path: '/hello',
       method: 'GET',
     })
-    expect(statusCode).eq(200)
+    expect(statusCode).toEqual(200)
     const b = Buffer.from(body)
-    expect(b).to.be.instanceof(Buffer)
-    expect(b.toString()).to.eq('hello')
+    expect(b).toBeInstanceOf(Buffer)
+    expect(b.toString()).toEqual('hello')
   })
 
-  after(() => {
+  afterAll(() => {
     renderer.kill()
   })
 })
