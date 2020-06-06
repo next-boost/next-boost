@@ -43,7 +43,7 @@
   "license": "MIT",
   "dependencies": {
     "hybrid-disk-cache": "^0.1.4",
-    "multee": "^0.1.5"
+    "multee": "^0.2.1"
   },
   "peerDependencies": {
     "next": "^9.0.0"

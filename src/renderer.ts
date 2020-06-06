@@ -1,5 +1,7 @@
 import http from 'http'
-import { createHandler, start } from 'multee/worker'
+import Multee from 'multee'
+
+const { createHandler, start } = Multee('worker')
 
 export type RequestListener = (
   req: http.IncomingMessage,
