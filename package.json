@@ -42,8 +42,8 @@
   "homepage": "https://github.com/rjyo/next-boost",
   "license": "MIT",
   "dependencies": {
-    "hybrid-disk-cache": "^0.1.4",
-    "multee": "^0.2.1"
+    "hybrid-disk-cache": "^0.1.5",
+    "multee": "^0.2.2"
   },
   "peerDependencies": {
     "next": "^9.0.0"
@@ -51,20 +51,20 @@
   "devDependencies": {
     "@types/better-sqlite3": "^5.4.0",
     "@types/jest": "^25.2.3",
-    "@types/node": "^14.0.9",
-    "@types/supertest": "^2.0.9",
+    "@types/node": "^14.0.24",
+    "@types/supertest": "^2.0.10",
     "@types/uuid": "^8.0.0",
-    "@typescript-eslint/eslint-plugin": "^3.1.0",
-    "@typescript-eslint/parser": "^3.1.0",
-    "eslint": "^7.1.0",
+    "@typescript-eslint/eslint-plugin": "^3.7.0",
+    "@typescript-eslint/parser": "^3.7.0",
+    "eslint": "^7.5.0",
     "eslint-config-prettier": "^6.11.0",
-    "eslint-plugin-prettier": "^3.1.2",
-    "jest": "^26.0.1",
+    "eslint-plugin-prettier": "^3.1.4",
+    "jest": "^26.1.0",
     "prettier": "^2.0.5",
     "supertest": "^4.0.2",
-    "ts-jest": "^26.1.0",
+    "ts-jest": "^26.1.3",
     "ts-node": "^8.10.2",
-    "typescript": "^3.9.5"
+    "typescript": "^3.9.7"
   },
   "keywords": [
     "next",
