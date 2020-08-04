@@ -84,7 +84,7 @@ By sending a GET with header `x-cache-status:update` to the URL, the cache will 
 
 ### Batch Deleting/Revalidating
 
-By sending request with the `x-cache-status:update` header to a certain URL, you can delete the cache for one page. If you want to delete pages for mutiple pages. You can operate the cache directly:
+If you want to delete mutiple pages at once, you can run SQL on the cache directly:
 
 ```bash
 sqlite3 /cache_path/cache.db "update cache set ttl=0 where key like '%/url/a%';"
