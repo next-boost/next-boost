@@ -1,6 +1,6 @@
 {
   "name": "next-boost",
-  "version": "0.7.7",
+  "version": "0.7.8",
   "description": "Add a cache layer for next.js SSR pages. Use stale-while-revalidate to boost the performance.",
   "main": "dist/handler.js",
   "bin": {
@@ -46,7 +46,7 @@
     "multee": "^0.2.3"
   },
   "peerDependencies": {
-    "next": "^9.0.0"
+    "next": "^10.0.0"
   },
   "devDependencies": {
     "@types/better-sqlite3": "^5.4.0",
