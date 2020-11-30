@@ -13,7 +13,7 @@ What you will see at http://localhost:3000/
 npm run dev
 # to build the next.js app
 npm run build
-# start the express server
+# start the express server in production mode
 node start
 ```
 
