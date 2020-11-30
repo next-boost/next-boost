@@ -1,8 +1,12 @@
 This is a demo of using [Next.js](https://nextjs.org/), [express.js](https://github.com/expressjs/express) and `next-boost` together.
 
-## Getting Started
+## About this demo 
+
+What you will see at http://localhost:3000/
 
 ![demo1](https://i.imgur.com/hYbJLtH.png)
+
+## Getting Started
 
 ```bash
 # dev mode
