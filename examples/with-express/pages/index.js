@@ -33,9 +33,5 @@ export default function Home({ now }) {
 }
 
 export const getServerSideProps = async () => {
-  return {
-    props: {
-      now: new Date().toISOString(),
-    },
-  }
+  return { props: { now: new Date().toISOString() } }
 }
