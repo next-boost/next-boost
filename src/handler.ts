@@ -56,7 +56,7 @@ type WrappedHandler = (
 // mutex lock to prevent same page rendered more than once
 const SyncLock = new Set<string>()
 const MAX_WAIT = 10000 // 10 seconds
-const INTERVAL = 100 // 0.1 second
+const INTERVAL = 50 // 50 ms
 
 const wrap: WrappedHandler = (cache, conf, renderer, plainHandler) => {
   return async (req, res) => {
@@ -72,6 +72,8 @@ const wrap: WrappedHandler = (cache, conf, renderer, plainHandler) => {
     let wait = 0
     while (SyncLock.has(req.url)) {
       await sleep(INTERVAL)
+      const served = serveCache(cache, req, res)
+      if (served === 'hit') return !conf.quiet && log(start, served, req.url)
       wait += INTERVAL
       if (wait > MAX_WAIT) {
         log(start, 'failed', 'timeout for sync lock')
