@@ -23,20 +23,11 @@ function log(start: [number, number], status: string, msg?: string): void {
 const MAX_WAIT = 10000 // 10 seconds
 const INTERVAL = 10 // 10 ms
 
-/**
- *
- * @param cache
- * @param lock
- * @param req
- * @param res
- * @returns false means need to continue render
- */
 async function serveCache(
   cache: Cache,
   lock: Set<string>,
   req: http.IncomingMessage,
-  res: http.ServerResponse,
-  quiet: boolean
+  res: http.ServerResponse
 ) {
   const start = process.hrtime()
   const notAllowed = ['GET', 'HEAD'].indexOf(req.method) === -1
@@ -75,7 +66,7 @@ async function serveCache(
   stream.pipe(res)
   stream.end(body)
 
-  if (!quiet) log(start, status, req.url)
+  log(start, status, req.url)
 
   return status
 }

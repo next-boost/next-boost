@@ -114,7 +114,6 @@ The config's type is defined as below:
 
 ```typescript
 interface HandlerConfig {
-  quiet?: boolean
   filename?: string
   cache?: {
     ttl?: number

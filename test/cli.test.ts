@@ -15,11 +15,10 @@ describe('cli parser', () => {
   })
 
   it('with alias', () => {
-    const args = parse(['node', 'abc.js', '-p', '123', '-H', 'abc', '-q'])
+    const args = parse(['node', 'abc.js', '-p', '123', '-H', 'abc'])
     expect(args).toMatchObject({
       '--port': 123,
       '--hostname': 'abc',
-      '--quiet': true,
     })
   })
 

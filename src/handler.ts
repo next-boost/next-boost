@@ -33,7 +33,6 @@ interface URLCacheRule {
 
 export interface HandlerConfig {
   filename?: string
-  quiet?: boolean
   cache?: {
     ttl?: number
     tbd?: number
@@ -61,7 +60,7 @@ const wrap: WrappedHandler = (cache, conf, renderer, plainHandler) => {
     const { matched, ttl } = matchRule(conf, req.url)
     if (!matched) return plainHandler(req, res)
 
-    const status = await serveCache(cache, SYNC_LOCK, req, res, conf.quiet)
+    const status = await serveCache(cache, SYNC_LOCK, req, res)
     if (status === 'hit') return
 
     const start = process.hrtime()
@@ -76,7 +75,7 @@ const wrap: WrappedHandler = (cache, conf, renderer, plainHandler) => {
     if (status === 'miss') serve(res, rv)
 
     const isUpdating = req.headers['x-cache-status'] === 'update'
-    if (!conf.quiet) log(start, isUpdating ? 'reload' : status, req.url)
+    log(start, isUpdating ? 'reload' : status, req.url)
 
     if (rv.statusCode === 200 && body.length > 0) {
       // save gzipped data
