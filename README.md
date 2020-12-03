@@ -13,12 +13,13 @@ $ npm install next-boost --save
 - Drop-in replacement for Next.js's production mode: `next start`
 - Greatly reducing the server TTFB (time-to-first-byte)
 - Non-blocking main process for cache-serving and using `worker_threads` for SSR
+- Simultaneous requests will be queued, where the first request will be rendered and the rest served by the cache
 - By using a [database-disk-hybrid cache](https://github.com/rjyo/hybrid-disk-cache), `next-boost` has
     - no memory capacity limit, and works great on cheap VPSs
     - no need to add a cache layer server like varnish, nginx Cache and etc.
     - great performance, and may even have [better performace than pure file system](https://www.sqlite.org/fasterthanfs.html) cache
     - portability on major platforms
-- Small footprint: [148 LOC](https://coveralls.io/github/rjyo/next-boost?branch=master)
+- Small footprint: [176 LOC](https://coveralls.io/github/rjyo/next-boost?branch=master)
 - Used in production with 300K pages cached
 
 ## How it works
@@ -176,7 +177,7 @@ Time per request:       0.746 [ms] (mean, across all concurrent requests)
 Transfer rate:          103073.16 [Kbytes/sec] received
 ```
 
-with `next start`:
+with `next start` (data fetched with `getServerSideProps`):
 
 ```
 Document Length:        76424 bytes
@@ -191,6 +192,8 @@ Time per request:       1674.185 [ms] (mean)
 Time per request:       209.273 [ms] (mean, across all concurrent requests)
 Transfer rate:          357.58 [Kbytes/sec] received
 ```
+
+It even outperforms next.js's static generated page (`getStaticProps`) with 2~2.5x requests per seconds in my environment.
 
 Check the underlying [`hybrid-disk-cache`](https://github.com/rjyo/next-boost)'s performance here.
 
