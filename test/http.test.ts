@@ -6,13 +6,14 @@ import { serveCache } from '../src/utils'
 
 describe('serve cache', () => {
   const cache = new Cache()
+  const lock = new Set<string>()
   const url = '/p1'
   cache.set('body:' + url, gzipSync(Buffer.from('AAA')))
   const data = Buffer.from(JSON.stringify({ 'header-x': 'value-x' }))
   cache.set('header:' + url, data)
 
-  const server = new http.Server((req, res) => {
-    const rv = serveCache(cache, req, res)
+  const server = new http.Server(async (req, res) => {
+    const rv = await serveCache(cache, lock, req, res)
     expect(rv).toEqual('hit')
   })
 
@@ -29,9 +30,9 @@ describe('serve cache', () => {
   })
 
   it('skip cache when x-cache-status = update', done => {
-    const server = new http.Server((req, res) => {
-      const status = serveCache(cache, req, res)
-      expect(status).toBeFalsy()
+    const server = new http.Server(async (req, res) => {
+      const status = await serveCache(cache, lock, req, res)
+      expect(status).toEqual('miss')
       res.end('BBB')
     })
     request(server)

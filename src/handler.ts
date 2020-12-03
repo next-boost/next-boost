@@ -33,7 +33,6 @@ interface URLCacheRule {
 
 export interface HandlerConfig {
   filename?: string
-  quiet?: boolean
   cache?: {
     ttl?: number
     tbd?: number
@@ -52,17 +51,20 @@ type WrappedHandler = (
   plainHandler: http.RequestListener
 ) => http.RequestListener
 
+// mutex lock to prevent same page rendered more than once
+const SYNC_LOCK = new Set<string>()
+
 const wrap: WrappedHandler = (cache, conf, renderer, plainHandler) => {
   return async (req, res) => {
     req.url = filterUrl(req.url, conf.paramFilter)
     const { matched, ttl } = matchRule(conf, req.url)
     if (!matched) return plainHandler(req, res)
 
-    const start = process.hrtime()
-    const served = serveCache(cache, req, res)
-    if (served === 'hit') return !conf.quiet && log(start, served, req.url)
+    const status = await serveCache(cache, SYNC_LOCK, req, res)
+    if (status === 'hit') return
 
-    // send task to render in child process
+    SYNC_LOCK.add(req.url)
+    const start = process.hrtime()
     const rv = await renderer.render({
       path: req.url,
       headers: req.headers,
@@ -71,11 +73,10 @@ const wrap: WrappedHandler = (cache, conf, renderer, plainHandler) => {
 
     // rv.body is a Buffer in JSON format: { type: 'Buffer', data: [...] }
     const body = Buffer.from(rv.body)
-    if (!served) serve(res, rv)
+    if (status === 'miss') serve(res, rv)
 
-    const status = req.headers['x-cache-status']
-    const isUpdating = status === 'update' || served === 'stale'
-    if (!conf.quiet) log(start, isUpdating ? 'update' : 'miss', req.url)
+    const isUpdating = req.headers['x-cache-status'] === 'update'
+    log(start, isUpdating ? 'reload' : status, req.url)
 
     if (rv.statusCode === 200 && body.length > 0) {
       // save gzipped data
@@ -87,6 +88,7 @@ const wrap: WrappedHandler = (cache, conf, renderer, plainHandler) => {
       cache.del('body:' + req.url)
       cache.del('header:' + req.url)
     }
+    SYNC_LOCK.delete(req.url)
   }
 }
 

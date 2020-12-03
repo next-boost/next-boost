@@ -12,7 +12,6 @@ const helpMessage = `
   Options
     --port, -p      A port number on which to start the application
     --hostname, -H  Hostname on which to start the application
-    --quiet, -q     No log output
     --help, -h      Displays this message
 `
 
@@ -27,14 +26,12 @@ export type Argv = { [key: string]: boolean | number | string }
 
 const types: { [key: string]: any } = {
   '--help': Boolean,
-  '--quiet': Boolean,
   '--port': Number,
   '--hostname': String,
 }
 
 const alias: { [key: string]: string } = {
   '-h': '--help',
-  '-q': '--quiet',
   '-p': '--port',
   '-H': '--hostname',
 }

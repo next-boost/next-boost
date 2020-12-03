@@ -20,15 +20,37 @@ function log(start: [number, number], status: string, msg?: string): void {
   console.log('%s | %s: %s', time.padStart(7), status.padEnd(6), msg)
 }
 
-function serveCache(
+const MAX_WAIT = 10000 // 10 seconds
+const INTERVAL = 10 // 10 ms
+
+async function serveCache(
   cache: Cache,
+  lock: Set<string>,
   req: http.IncomingMessage,
   res: http.ServerResponse
 ) {
-  const notAllowed = ['GET', 'HEAD'].indexOf(req.method) === -1
-  const updating = req.headers['x-cache-status'] === 'update'
-  const status = cache.has('body:' + req.url)
-  if (notAllowed || updating || status === 'miss') return false
+  const start = process.hrtime()
+  const err = ['GET', 'HEAD'].indexOf(req.method) === -1
+  const force = req.headers['x-cache-status'] === 'update'
+  let status = cache.has('body:' + req.url)
+  // not-allowed-method or by-force or first-time miss
+  if (err || force || (!lock.has(req.url) && status === 'miss')) return 'miss'
+
+  // non first-time miss, wait for the cache
+  if (status === 'miss') {
+    let wait = 0
+    while (lock.has(req.url)) {
+      await sleep(INTERVAL)
+      wait += INTERVAL
+      // to protect the server from heavy payload
+      if (wait > MAX_WAIT) {
+        res.statusCode = 504
+        res.end()
+        return 'hit'
+      }
+    }
+    status = 'hit'
+  }
 
   const body = cache.get('body:' + req.url)
   const headers = JSON.parse(cache.get('header:' + req.url).toString())
@@ -42,6 +64,11 @@ function serveCache(
   const stream = new PassThrough()
   stream.pipe(res)
   stream.end(body)
+
+  log(start, status, req.url)
+
+  // no need to run update again
+  if (lock.has(req.url) && status === 'stale') status = 'hit'
 
   return status
 }
@@ -86,11 +113,15 @@ function filterUrl(url: string, filter?: ParamFilter) {
 
   const [p0, p1] = url.split('?', 2)
   const params = new URLSearchParams(p1)
-  const keysToDelete = [...params.keys()].filter((k) => !filter(k))
+  const keysToDelete = [...params.keys()].filter(k => !filter(k))
   for (const k of keysToDelete) params.delete(k)
 
   const qs = params.toString()
   return qs ? p0 + '?' + qs : p0
+}
+
+async function sleep(ms: number) {
+  return new Promise<void>(resolve => setTimeout(resolve, ms))
 }
 
 export { isZipped, log, mergeConfig, serveCache, serve, filterUrl }
