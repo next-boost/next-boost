@@ -63,6 +63,7 @@ const wrap: WrappedHandler = (cache, conf, renderer, plainHandler) => {
     const status = await serveCache(cache, SYNC_LOCK, req, res)
     if (status === 'hit') return
 
+    SYNC_LOCK.add(req.url)
     const start = process.hrtime()
     const rv = await renderer.render({
       path: req.url,

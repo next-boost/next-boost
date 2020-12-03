@@ -14,7 +14,7 @@ describe('slow handler', () => {
     const script = require.resolve('./mock')
     cached = await CachedHandler(
       { script },
-      { rules: [{ regex: '/slow-*', ttl: 500 }] }
+      { rules: [{ regex: '/slow-*', ttl: 0.5 }] }
     )
     cached.cache.del('body:/slow-300')
     cached.cache.del('header:/slow-300')
@@ -24,6 +24,24 @@ describe('slow handler', () => {
   })
 
   it('get /slow-300', done => {
+    const tasks = [0, 1].map(
+      i =>
+        new Promise<number>(resolve => {
+          request(server)
+            .get('/slow-300')
+            .end((err, res) => {
+              console.log(i, 'ended')
+              resolve(res.status)
+            })
+        })
+    )
+    Promise.all(tasks).then(rv => {
+      expect(rv).toEqual([200, 200])
+    })
+    setTimeout(done, 1000)
+  })
+
+  it('get /slow-300, stale state', done => {
     const tasks = [0, 1].map(
       i =>
         new Promise<number>(resolve => {

@@ -30,14 +30,13 @@ async function serveCache(
   res: http.ServerResponse
 ) {
   const start = process.hrtime()
-  const notAllowed = ['GET', 'HEAD'].indexOf(req.method) === -1
-  const updating = req.headers['x-cache-status'] === 'update'
+  const err = ['GET', 'HEAD'].indexOf(req.method) === -1
+  const force = req.headers['x-cache-status'] === 'update'
   let status = cache.has('body:' + req.url)
-  if (notAllowed || updating || (!lock.has(req.url) && status === 'miss')) {
-    if (status !== 'hit') lock.add(req.url)
-    return 'miss'
-  }
+  // not-allowed-method or by-force or first-time miss
+  if (err || force || (!lock.has(req.url) && status === 'miss')) return 'miss'
 
+  // non first-time miss, wait for the cache
   if (status === 'miss') {
     let wait = 0
     while (lock.has(req.url)) {
@@ -67,6 +66,9 @@ async function serveCache(
   stream.end(body)
 
   log(start, status, req.url)
+
+  // no need to run update again
+  if (lock.has(req.url) && status === 'stale') status = 'hit'
 
   return status
 }
