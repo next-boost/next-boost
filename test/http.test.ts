@@ -16,7 +16,7 @@ describe('serve cache', () => {
     expect(rv).toEqual('hit')
   })
 
-  it('cached contents', (done) => {
+  it('cached contents', done => {
     request(server)
       .get(url)
       .expect(200)
@@ -28,7 +28,7 @@ describe('serve cache', () => {
       })
   })
 
-  it('skip cache when x-cache-status = update', (done) => {
+  it('skip cache when x-cache-status = update', done => {
     const server = new http.Server((req, res) => {
       const status = serveCache(cache, req, res)
       expect(status).toBeFalsy()

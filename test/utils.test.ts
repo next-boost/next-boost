@@ -1,7 +1,7 @@
 import { filterUrl, isZipped, log, mergeConfig } from '../src/utils'
 
 export const sleep = async (t: number) => {
-  return new Promise((resolve) => setTimeout(resolve, t))
+  return new Promise(resolve => setTimeout(resolve, t))
 }
 
 describe('utils', () => {
@@ -74,10 +74,10 @@ describe('utils', () => {
     const rv1 = filterUrl(url)
     expect(rv1).toEqual(url)
 
-    const rv2 = filterUrl(url, (p) => !p.startsWith('p'))
+    const rv2 = filterUrl(url, p => !p.startsWith('p'))
     expect(rv2).toEqual('/path')
 
-    const rv3 = filterUrl(url, (p) => p !== 'p1')
+    const rv3 = filterUrl(url, p => p !== 'p1')
     expect(rv3).toEqual('/path?p2=2&p2=3')
   })
 })

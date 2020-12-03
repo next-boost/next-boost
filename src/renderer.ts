@@ -38,14 +38,14 @@ const render = createHandler(
         return reject('Failed to create server in renderer')
       }
       const args = { hostname: '127.0.0.1', port: addr.port, ...options }
-      const req = http.request(args, (res) => {
+      const req = http.request(args, res => {
         let body = Buffer.from('')
-        res.on('data', (chunk) => (body = Buffer.concat([body, chunk])))
+        res.on('data', chunk => (body = Buffer.concat([body, chunk])))
         res.on('end', () =>
           resolve({ headers: res.headers, statusCode: res.statusCode, body })
         )
       })
-      req.on('error', (e) => reject(`Failed in renderer: ${e.message}`))
+      req.on('error', e => reject(`Failed in renderer: ${e.message}`))
       req.end()
     })
   }

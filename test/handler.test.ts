@@ -21,7 +21,7 @@ describe('cached handler', () => {
     server = new http.Server(cached.handler)
   })
 
-  it('miss /hello', (done) => {
+  it('miss /hello', done => {
     request(server)
       .get('/hello')
       .end((err, res) => {
@@ -30,7 +30,7 @@ describe('cached handler', () => {
       })
   })
 
-  it('hit GET /hello', (done) => {
+  it('hit GET /hello', done => {
     request(server)
       .get('/hello')
       .end((err, res) => {
@@ -39,7 +39,7 @@ describe('cached handler', () => {
       })
   })
 
-  it('hit HEAD /hello', (done) => {
+  it('hit HEAD /hello', done => {
     request(server)
       .head('/hello')
       .end((err, res) => {
@@ -48,7 +48,7 @@ describe('cached handler', () => {
       })
   })
 
-  it('stale /hello', (done) => {
+  it('stale /hello', done => {
     setTimeout(() => {
       request(server)
         .get('/hello')
@@ -59,7 +59,7 @@ describe('cached handler', () => {
     }, 1000)
   })
 
-  it('update /hello', (done) => {
+  it('update /hello', done => {
     request(server)
       .get('/hello')
       .end((err, res) => {
@@ -70,7 +70,7 @@ describe('cached handler', () => {
     }, 1000)
   })
 
-  it('update /hello-304', (done) => {
+  it('update /hello-304', done => {
     request(server)
       .get('/hello-304')
       .end((err, res) => {
@@ -79,7 +79,7 @@ describe('cached handler', () => {
       })
   })
 
-  it('miss /hello-zip', (done) => {
+  it('miss /hello-zip', done => {
     request(server)
       .get('/hello-zip')
       .end((err, res) => {
@@ -88,7 +88,7 @@ describe('cached handler', () => {
       })
   })
 
-  it('bypass /unknown', (done) => {
+  it('bypass /unknown', done => {
     request(server)
       .get('/unknown')
       .end((err, res) => {
@@ -97,7 +97,7 @@ describe('cached handler', () => {
       })
   })
 
-  it('force update /hello', (done) => {
+  it('force update /hello', done => {
     request(server)
       .get('/hello')
       .set('x-cache-status', 'update')
@@ -107,7 +107,7 @@ describe('cached handler', () => {
       })
   })
 
-  it('force update /hello-empty', (done) => {
+  it('force update /hello-empty', done => {
     request(server)
       .get('/hello-empty')
       .set('x-cache-status', 'update')
@@ -136,7 +136,7 @@ describe('cached handler with different conf', () => {
     server = new http.Server(cached.handler)
   })
 
-  it('bypass /unknown', (done) => {
+  it('bypass /unknown', done => {
     request(server)
       .get('/unknown')
       .end((_, res) => {
