@@ -15,7 +15,17 @@ export default async function init(): Promise<RequestListener> {
     } else {
       res.statusCode = 404
     }
-    res.end()
+    if (!req.url.startsWith('/slow-')) {
+      res.end()
+    } else {
+      const time = req.url.replace(/\/slow-(\d+)$/, '$1')
+      console.log(`slow with ${time}ms`)
+      setTimeout(() => {
+        res.statusCode = 200
+        res.write(`slow with ${time}ms done!`)
+        res.end()
+      }, parseInt(time, 10) || 100)
+    }
   }
   return cb
 }

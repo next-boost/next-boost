@@ -11,6 +11,7 @@ import {
   ParamFilter,
   serve,
   serveCache,
+  sleep,
 } from './utils'
 
 function matchRule(conf: HandlerConfig, url: string) {
@@ -52,6 +53,11 @@ type WrappedHandler = (
   plainHandler: http.RequestListener
 ) => http.RequestListener
 
+// mutex lock to prevent same page rendered more than once
+const SyncLock = new Set<string>()
+const MAX_WAIT = 10000 // 10 seconds
+const INTERVAL = 100 // 0.1 second
+
 const wrap: WrappedHandler = (cache, conf, renderer, plainHandler) => {
   return async (req, res) => {
     req.url = filterUrl(req.url, conf.paramFilter)
@@ -62,7 +68,20 @@ const wrap: WrappedHandler = (cache, conf, renderer, plainHandler) => {
     const served = serveCache(cache, req, res)
     if (served === 'hit') return !conf.quiet && log(start, served, req.url)
 
+    // wait while req.url is being rendered
+    let wait = 0
+    while (SyncLock.has(req.url)) {
+      await sleep(INTERVAL)
+      wait += INTERVAL
+      if (wait > MAX_WAIT) {
+        log(start, 'failed', 'timeout for sync lock')
+        res.statusCode = 504
+        return res.end()
+      }
+    }
+
     // send task to render in child process
+    SyncLock.add(req.url)
     const rv = await renderer.render({
       path: req.url,
       headers: req.headers,
@@ -87,6 +106,7 @@ const wrap: WrappedHandler = (cache, conf, renderer, plainHandler) => {
       cache.del('body:' + req.url)
       cache.del('header:' + req.url)
     }
+    SyncLock.delete(req.url)
   }
 }
 

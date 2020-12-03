@@ -86,11 +86,15 @@ function filterUrl(url: string, filter?: ParamFilter) {
 
   const [p0, p1] = url.split('?', 2)
   const params = new URLSearchParams(p1)
-  const keysToDelete = [...params.keys()].filter((k) => !filter(k))
+  const keysToDelete = [...params.keys()].filter(k => !filter(k))
   for (const k of keysToDelete) params.delete(k)
 
   const qs = params.toString()
   return qs ? p0 + '?' + qs : p0
 }
 
-export { isZipped, log, mergeConfig, serveCache, serve, filterUrl }
+async function sleep(ms: number) {
+  return new Promise<void>(resolve => setTimeout(resolve, ms))
+}
+
+export { isZipped, log, mergeConfig, serveCache, serve, filterUrl, sleep }
