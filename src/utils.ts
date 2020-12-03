@@ -20,15 +20,47 @@ function log(start: [number, number], status: string, msg?: string): void {
   console.log('%s | %s: %s', time.padStart(7), status.padEnd(6), msg)
 }
 
-function serveCache(
+const MAX_WAIT = 10000 // 10 seconds
+const INTERVAL = 10 // 10 ms
+
+/**
+ *
+ * @param cache
+ * @param lock
+ * @param req
+ * @param res
+ * @returns false means need to continue render
+ */
+async function serveCache(
   cache: Cache,
+  lock: Set<string>,
   req: http.IncomingMessage,
-  res: http.ServerResponse
+  res: http.ServerResponse,
+  quiet: boolean
 ) {
+  const start = process.hrtime()
   const notAllowed = ['GET', 'HEAD'].indexOf(req.method) === -1
   const updating = req.headers['x-cache-status'] === 'update'
-  const status = cache.has('body:' + req.url)
-  if (notAllowed || updating || status === 'miss') return false
+  let status = cache.has('body:' + req.url)
+  if (notAllowed || updating || (!lock.has(req.url) && status === 'miss')) {
+    if (status !== 'hit') lock.add(req.url)
+    return 'miss'
+  }
+
+  if (status === 'miss') {
+    let wait = 0
+    while (lock.has(req.url)) {
+      await sleep(INTERVAL)
+      wait += INTERVAL
+      // to protect the server from heavy payload
+      if (wait > MAX_WAIT) {
+        res.statusCode = 504
+        res.end()
+        return 'hit'
+      }
+    }
+    status = 'hit'
+  }
 
   const body = cache.get('body:' + req.url)
   const headers = JSON.parse(cache.get('header:' + req.url).toString())
@@ -42,6 +74,8 @@ function serveCache(
   const stream = new PassThrough()
   stream.pipe(res)
   stream.end(body)
+
+  if (!quiet) log(start, status, req.url)
 
   return status
 }
@@ -97,4 +131,4 @@ async function sleep(ms: number) {
   return new Promise<void>(resolve => setTimeout(resolve, ms))
 }
 
-export { isZipped, log, mergeConfig, serveCache, serve, filterUrl, sleep }
+export { isZipped, log, mergeConfig, serveCache, serve, filterUrl }

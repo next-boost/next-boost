@@ -11,7 +11,6 @@ import {
   ParamFilter,
   serve,
   serveCache,
-  sleep,
 } from './utils'
 
 function matchRule(conf: HandlerConfig, url: string) {
@@ -54,9 +53,7 @@ type WrappedHandler = (
 ) => http.RequestListener
 
 // mutex lock to prevent same page rendered more than once
-const SyncLock = new Set<string>()
-const MAX_WAIT = 10000 // 10 seconds
-const INTERVAL = 50 // 50 ms
+const SYNC_LOCK = new Set<string>()
 
 const wrap: WrappedHandler = (cache, conf, renderer, plainHandler) => {
   return async (req, res) => {
@@ -64,26 +61,10 @@ const wrap: WrappedHandler = (cache, conf, renderer, plainHandler) => {
     const { matched, ttl } = matchRule(conf, req.url)
     if (!matched) return plainHandler(req, res)
 
+    const status = await serveCache(cache, SYNC_LOCK, req, res, conf.quiet)
+    if (status === 'hit') return
+
     const start = process.hrtime()
-    const served = serveCache(cache, req, res)
-    if (served === 'hit') return !conf.quiet && log(start, served, req.url)
-
-    // wait while req.url is being rendered
-    let wait = 0
-    while (SyncLock.has(req.url)) {
-      await sleep(INTERVAL)
-      const served = serveCache(cache, req, res)
-      if (served === 'hit') return !conf.quiet && log(start, served, req.url)
-      wait += INTERVAL
-      if (wait > MAX_WAIT) {
-        log(start, 'failed', 'timeout for sync lock')
-        res.statusCode = 504
-        return res.end()
-      }
-    }
-
-    // send task to render in child process
-    SyncLock.add(req.url)
     const rv = await renderer.render({
       path: req.url,
       headers: req.headers,
@@ -92,11 +73,10 @@ const wrap: WrappedHandler = (cache, conf, renderer, plainHandler) => {
 
     // rv.body is a Buffer in JSON format: { type: 'Buffer', data: [...] }
     const body = Buffer.from(rv.body)
-    if (!served) serve(res, rv)
+    if (status === 'miss') serve(res, rv)
 
-    const status = req.headers['x-cache-status']
-    const isUpdating = status === 'update' || served === 'stale'
-    if (!conf.quiet) log(start, isUpdating ? 'update' : 'miss', req.url)
+    const isUpdating = req.headers['x-cache-status'] === 'update'
+    if (!conf.quiet) log(start, isUpdating ? 'reload' : status, req.url)
 
     if (rv.statusCode === 200 && body.length > 0) {
       // save gzipped data
@@ -108,7 +88,7 @@ const wrap: WrappedHandler = (cache, conf, renderer, plainHandler) => {
       cache.del('body:' + req.url)
       cache.del('header:' + req.url)
     }
-    SyncLock.delete(req.url)
+    SYNC_LOCK.delete(req.url)
   }
 }
 
