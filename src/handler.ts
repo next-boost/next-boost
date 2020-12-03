@@ -64,12 +64,10 @@ const wrap: WrappedHandler = (cache, conf, renderer, plainHandler) => {
     if (status === 'hit') return
 
     SYNC_LOCK.add(req.url)
+
     const start = process.hrtime()
-    const rv = await renderer.render({
-      path: req.url,
-      headers: req.headers,
-      method: req.method,
-    })
+    const args = { path: req.url, headers: req.headers, method: req.method }
+    const rv = await renderer.render(args)
 
     // rv.body is a Buffer in JSON format: { type: 'Buffer', data: [...] }
     const body = Buffer.from(rv.body)
@@ -84,10 +82,11 @@ const wrap: WrappedHandler = (cache, conf, renderer, plainHandler) => {
       cache.set('body:' + req.url, buf, ttl)
       cache.set('header:' + req.url, toBuffer(rv.headers), ttl)
     } else if (isUpdating) {
-      // updating but get no result
+      // updating but empty result
       cache.del('body:' + req.url)
       cache.del('header:' + req.url)
     }
+
     SYNC_LOCK.delete(req.url)
   }
 }

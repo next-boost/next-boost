@@ -1,5 +1,5 @@
 import fs from 'fs'
-import http, { ServerResponse } from 'http'
+import { IncomingMessage, ServerResponse } from 'http'
 import Cache from 'hybrid-disk-cache'
 import path from 'path'
 import { PassThrough } from 'stream'
@@ -26,8 +26,8 @@ const INTERVAL = 10 // 10 ms
 async function serveCache(
   cache: Cache,
   lock: Set<string>,
-  req: http.IncomingMessage,
-  res: http.ServerResponse
+  req: IncomingMessage,
+  res: ServerResponse
 ) {
   const start = process.hrtime()
   const err = ['GET', 'HEAD'].indexOf(req.method) === -1
@@ -52,25 +52,27 @@ async function serveCache(
     status = 'hit'
   }
 
-  const body = cache.get('body:' + req.url)
-  const headers = JSON.parse(cache.get('header:' + req.url).toString())
-  for (const k in headers) {
-    res.setHeader(k, headers[k])
-  }
-  res.statusCode = 200
-
-  res.removeHeader('content-length')
-  res.setHeader('content-encoding', 'gzip')
-  const stream = new PassThrough()
-  stream.pipe(res)
-  stream.end(body)
-
+  send(cache, req, res)
   log(start, status, req.url)
 
   // no need to run update again
   if (lock.has(req.url) && status === 'stale') status = 'hit'
 
   return status
+}
+
+function send(cache: Cache, req: IncomingMessage, res: ServerResponse) {
+  const body = cache.get('body:' + req.url)
+  const headers = JSON.parse(cache.get('header:' + req.url).toString())
+  for (const k in headers) {
+    res.setHeader(k, headers[k])
+  }
+  res.statusCode = 200
+  res.removeHeader('content-length')
+  res.setHeader('content-encoding', 'gzip')
+  const stream = new PassThrough()
+  stream.pipe(res)
+  stream.end(body)
 }
 
 function serve(res: ServerResponse, rv: RenderResult) {
