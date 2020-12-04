@@ -73,15 +73,16 @@ const wrap: WrappedHandler = (cache, conf, renderer, plainHandler) => {
     const body = Buffer.from(rv.body)
     if (status === 'miss') serve(res, rv)
 
-    const isUpdating = req.headers['x-cache-status'] === 'update'
-    log(start, isUpdating ? 'reload' : status, req.url)
+    const forced = req.headers['x-cache-status'] === 'update'
+    const label = forced ? 'force' : status === 'miss' ? 'miss' : 'update'
+    log(start, label, req.url)
 
     if (rv.statusCode === 200 && body.length > 0) {
       // save gzipped data
       const buf = isZipped(rv.headers) ? body : gzipSync(body)
       cache.set('body:' + req.url, buf, ttl)
       cache.set('header:' + req.url, toBuffer(rv.headers), ttl)
-    } else if (isUpdating) {
+    } else if (forced) {
       // updating but empty result
       cache.del('body:' + req.url)
       cache.del('header:' + req.url)
