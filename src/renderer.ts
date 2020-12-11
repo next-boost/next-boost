@@ -22,7 +22,7 @@ export type RenderResult = {
 
 let server: http.Server
 
-export type InitArgs = { script: string; args?: any }
+export type InitArgs = { script: string; args?: any; debug?: boolean }
 
 const init = createHandler('init', async (args: InitArgs) => {
   const fn = require(args.script).default

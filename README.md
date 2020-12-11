@@ -197,6 +197,17 @@ It even outperforms next.js's static generated page (`getStaticProps`) with 2~2.
 
 Check the underlying [`hybrid-disk-cache`](https://github.com/rjyo/next-boost)'s performance here.
 
+## Logging
+
+Logging is enabled by default. If you use `next-boost` programmatically, you can disable logs by passing the `debug` boolean flag as an option to `CachedHandler`.
+
+
+```javascript
+...
+const cached = await CachedHandler({ script, args, debug: false });
+...
+```
+
 ## Limitations
 
 - For architecture with multiple load-balanced rendering servers, the benefit of using `next-boost` is limited. Until the url is hit on every backend server, it can still miss the cache. Though sharing the cache on network file systems with servers might help.

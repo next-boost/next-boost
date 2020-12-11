@@ -3,6 +3,9 @@ import Cache from 'hybrid-disk-cache'
 import request from 'supertest'
 import { gzipSync } from 'zlib'
 import { serveCache } from '../src/utils'
+import { createLogger } from '../src/logger'
+
+const logger = createLogger()
 
 describe('serve cache', () => {
   const cache = new Cache()
@@ -13,7 +16,7 @@ describe('serve cache', () => {
   cache.set('header:' + url, data)
 
   const server = new http.Server(async (req, res) => {
-    const rv = await serveCache(cache, lock, req, res)
+    const rv = await serveCache(cache, lock, req, res, logger)
     expect(rv).toEqual('hit')
   })
 
@@ -31,7 +34,7 @@ describe('serve cache', () => {
 
   it('skip cache when x-cache-status = update', done => {
     const server = new http.Server(async (req, res) => {
-      const status = await serveCache(cache, lock, req, res)
+      const status = await serveCache(cache, lock, req, res, logger)
       expect(status).toEqual('miss')
       res.end('BBB')
     })

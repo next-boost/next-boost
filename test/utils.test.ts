@@ -1,8 +1,11 @@
-import { filterUrl, isZipped, log, mergeConfig } from '../src/utils'
+import { filterUrl, isZipped, mergeConfig } from '../src/utils'
+import { createLogger } from '../src/logger'
 
 export const sleep = async (t: number) => {
   return new Promise(resolve => setTimeout(resolve, t))
 }
+
+const logger = createLogger()
 
 describe('utils', () => {
   it('is response zipped', () => {
@@ -16,13 +19,13 @@ describe('utils', () => {
 
   it('log with hrtime', async () => {
     const start = process.hrtime()
-    log(start, 'miss', 'A')
+    logger.logOperation(start, 'miss', 'A')
     await sleep(100)
-    log(start, 'hit', 'A')
+    logger.logOperation(start, 'hit', 'A')
     await sleep(1000)
-    log(start, 'hit', 'A')
+    logger.logOperation(start, 'hit', 'A')
     await sleep(1000)
-    log(start, 'hit', 'A')
+    logger.logOperation(start, 'hit', 'A')
   })
 
   it('merge config / no config file', () => {

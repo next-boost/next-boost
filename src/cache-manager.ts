@@ -1,16 +1,16 @@
 import Cache from 'hybrid-disk-cache'
-import { log } from './utils'
+import { Logger } from './logger'
 
 let interval: NodeJS.Timeout
 
-export function initPurgeTimer(cache: Cache): void {
+export function initPurgeTimer(cache: Cache, logger: Logger): void {
   if (interval) return
   const tbd = Math.min(cache.tbd, 3600)
-  console.log('  Cache manager inited, will start to purge in %ds', tbd)
+  logger.logMessage('  Cache manager inited, will start to purge in %ds', tbd)
   interval = setInterval(() => {
     const start = process.hrtime()
     const rv = cache.purge()
-    log(start, 'purge', `purged all ${rv} inactive record(s)`)
+    logger.logOperation(start, 'purge', `purged all ${rv} inactive record(s)`)
   }, tbd * 1000)
 }
 

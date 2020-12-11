@@ -5,19 +5,11 @@ import path from 'path'
 import { PassThrough } from 'stream'
 import { HandlerConfig } from './handler'
 import { RenderResult } from './renderer'
+import { Logger } from './logger'
 
 function isZipped(headers: { [key: string]: any }): boolean {
   const field = headers['content-encoding']
   return typeof field === 'string' && field.includes('gzip')
-}
-
-function log(start: [number, number], status: string, msg?: string): void {
-  const [secs, ns] = process.hrtime(start)
-  const ms = ns / 1000000
-  const timeS = `${secs > 0 ? secs + 's' : ''}`
-  const timeMs = `${secs === 0 ? ms.toFixed(1) : ms.toFixed(0)}ms`
-  const time = timeS + (secs > 1 ? '' : timeMs)
-  console.log('%s | %s: %s', time.padStart(7), status.padEnd(6), msg)
 }
 
 const MAX_WAIT = 10000 // 10 seconds
@@ -27,7 +19,8 @@ async function serveCache(
   cache: Cache,
   lock: Set<string>,
   req: IncomingMessage,
-  res: ServerResponse
+  res: ServerResponse,
+  logger: Logger
 ) {
   const start = process.hrtime()
   const err = ['GET', 'HEAD'].indexOf(req.method) === -1
@@ -53,7 +46,7 @@ async function serveCache(
   }
 
   send(cache, req, res)
-  log(start, status, req.url)
+  logger.logOperation(start, status, req.url)
 
   // no need to run update again
   if (lock.has(req.url) && status === 'stale') status = 'hit'
@@ -126,4 +119,4 @@ async function sleep(ms: number) {
   return new Promise<void>(resolve => setTimeout(resolve, ms))
 }
 
-export { isZipped, log, mergeConfig, serveCache, serve, filterUrl }
+export { isZipped, mergeConfig, serveCache, serve, filterUrl }
