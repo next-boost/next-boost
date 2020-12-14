@@ -34,6 +34,7 @@ interface URLCacheRule {
 
 export interface HandlerConfig {
   filename?: string
+  quiet?: boolean
   cache?: {
     ttl?: number
     tbd?: number
@@ -63,7 +64,7 @@ const wrap: WrappedHandler = (cache, conf, renderer, plainHandler) => {
 
     const start = process.hrtime()
     const { status, stop } = await serveCache(cache, SYNC_LOCK, req, res)
-    if (stop) return log(start, status, req.url)
+    if (stop) return !conf.quiet && log(start, status, req.url)
 
     SYNC_LOCK.add(req.url)
 
@@ -75,7 +76,7 @@ const wrap: WrappedHandler = (cache, conf, renderer, plainHandler) => {
     // stale means already served from cache with old ver, just update the cache
     if (status !== 'stale') serve(res, rv)
     // stale will print 2 lines, first 'stale', second 'update'
-    log(start, status === 'stale' ? 'update' : status, req.url)
+    !conf.quiet && log(start, status === 'stale' ? 'update' : status, req.url)
 
     if (rv.statusCode === 200 && body.length > 0) {
       // save gzipped data

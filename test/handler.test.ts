@@ -14,7 +14,7 @@ describe('cached handler', () => {
     const script = require.resolve('./mock')
     cached = await CachedHandler(
       { script },
-      { rules: [{ regex: '/hello.*', ttl: 0.5 }] }
+      { rules: [{ regex: '/hello.*', ttl: 0.5 }], quiet: true }
     )
     cached.cache.del('body:/hello')
     cached.cache.del('header:/hello')
@@ -133,7 +133,10 @@ describe('cached handler with different conf', () => {
 
   beforeAll(async function () {
     const script = require.resolve('./mock')
-    cached = await CachedHandler({ script }, { paramFilter: () => true })
+    cached = await CachedHandler(
+      { script },
+      { quiet: true, paramFilter: () => true }
+    )
     server = new http.Server(cached.handler)
   })
 

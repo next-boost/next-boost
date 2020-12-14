@@ -116,6 +116,7 @@ The config's type is defined as below:
 ```typescript
 interface HandlerConfig {
   filename?: string
+  quiet?: boolean
   cache?: {
     ttl?: number
     tbd?: number
@@ -196,6 +197,19 @@ Transfer rate:          357.58 [Kbytes/sec] received
 It even outperforms next.js's static generated page (`getStaticProps`) with 2~2.5x requests per seconds in my environment.
 
 Check the underlying [`hybrid-disk-cache`](https://github.com/rjyo/next-boost)'s performance here.
+
+## Logging
+
+Logging is enabled by default. If you use `next-boost` programmatically, you can disable logs by passing the `quiet` boolean flag as an option to `CachedHandler`.
+
+
+```javascript
+...
+const cached = await CachedHandler({ script, args, quiet: true });
+...
+```
+
+There's also a `--quiet` flag if you are using the command line.
 
 ## Limitations
 
