@@ -43,37 +43,11 @@ After install the package, just change the start script from `next start` to `ne
   },
 ```
 
-## An example
+## Examples
 
-```javascript
-// server.js
-const init = () => {
-  // start your server here
-  console.log('prepare and start server')
-  // return the listener, a sluggish page that takes 2 seconds to render
-  return (_, res) => setTimeout(() => res.end(new Date().toISOString()), 2000)
-}
+There's an example under `examples/nodejs`, which works with a plain `http.Server`.
 
-module.exports = { default: init }
-```
-
-```javascript
-// start.js
-const http = require('http')
-const CachedHandler = require('next-boost').default
-const script = require.resolve('./listener')
-const opts = { rules: [{ regex: '.*', ttl: 1 }] }
-
-async function start() {
-  const cached = await CachedHandler({ script }, opts)
-  const server = new http.Server(cached.handler)
-  server.listen(3000, () => console.log(`> Server on http://localhost:3000`))
-}
-
-start()
-```
-
-You can run the example under `examples/nodejs`.
+To use it with `express.js` and `next.js`, please check `examples/with-express`.
 
 ## Advanced Usages
 
