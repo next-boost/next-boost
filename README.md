@@ -14,13 +14,13 @@ $ npm install next-boost --save
 - Greatly reducing the server TTFB (time-to-first-byte)
 - Non-blocking main process for cache-serving and using `worker_threads` for SSR
 - Simultaneous requests will be queued, where the first request will be rendered and the rest served by the cache
-- By using a [database-disk-hybrid cache](https://github.com/rjyo/hybrid-disk-cache), `next-boost` has
+- Small footprint with [less than 200 LOC](https://coveralls.io/github/rjyo/next-boost?branch=master)
+- Used in production with 300K pages cached
+- As a [database-disk-hybrid cache](https://github.com/rjyo/hybrid-disk-cache)
     - no memory capacity limit, and works great on cheap VPSs
     - no need to add a cache layer server like varnish, nginx Cache and etc.
     - great performance, and may even have [better performace than pure file system](https://www.sqlite.org/fasterthanfs.html) cache
     - portability on major platforms
-- Small footprint: [176 LOC](https://coveralls.io/github/rjyo/next-boost?branch=master)
-- Used in production with 300K pages cached
 
 ## How it works
 
