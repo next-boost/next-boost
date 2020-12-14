@@ -34,12 +34,10 @@ export async function serveCache(
   req: IncomingMessage,
   res: ServerResponse
 ): Promise<ServeResult> {
-  if (req.headers['x-cache-status'] === 'update') {
-    return { status: 'force', stop: false }
-  }
-  const rv: ServeResult = { status: 'miss', stop: false }
-  rv.status = cache.has('body:' + req.url)
+  const rv: ServeResult = { status: 'force', stop: false }
+  if (req.headers['x-cache-status'] === 'update') return rv
 
+  rv.status = cache.has('body:' + req.url)
   // forced to skip cache or first-time miss
   if (!lock.has(req.url) && rv.status === 'miss') return rv
 
