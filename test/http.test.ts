@@ -2,7 +2,7 @@ import http from 'http'
 import Cache from 'hybrid-disk-cache'
 import request from 'supertest'
 import { gzipSync } from 'zlib'
-import { serveCache } from '../src/utils'
+import { serveCache } from '../src/cache-manager'
 
 describe('serve cache', () => {
   const cache = new Cache()
@@ -13,8 +13,8 @@ describe('serve cache', () => {
   cache.set('header:' + url, data)
 
   const server = new http.Server(async (req, res) => {
-    const rv = await serveCache(cache, lock, req, res)
-    expect(rv).toEqual('hit')
+    const { status } = await serveCache(cache, lock, req, res)
+    expect(status).toEqual('hit')
   })
 
   it('cached contents', done => {
@@ -31,8 +31,9 @@ describe('serve cache', () => {
 
   it('skip cache when x-cache-status = update', done => {
     const server = new http.Server(async (req, res) => {
-      const status = await serveCache(cache, lock, req, res)
-      expect(status).toEqual('miss')
+      const { status, stop } = await serveCache(cache, lock, req, res)
+      expect(status).toEqual('force')
+      expect(stop).toBeFalsy()
       res.end('BBB')
     })
     request(server)

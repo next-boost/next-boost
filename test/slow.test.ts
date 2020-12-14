@@ -18,8 +18,8 @@ describe('slow handler', () => {
     )
     cached.cache.del('body:/slow-300')
     cached.cache.del('header:/slow-300')
-    cached.cache.del('body:/slow-12000')
-    cached.cache.del('header:/slow-12000')
+    cached.cache.del('body:/slow-10100')
+    cached.cache.del('header:/slow-10100')
     server = new http.Server(cached.handler)
   })
 
@@ -59,12 +59,12 @@ describe('slow handler', () => {
     })
   })
 
-  it('get /slow-12000', done => {
+  it('get /slow-10100', done => {
     const tasks = [0, 1].map(
       i =>
         new Promise<number>(resolve => {
           request(server)
-            .get('/slow-12000')
+            .get('/slow-10100')
             .end((err, res) => {
               console.log(i, 'ended')
               resolve(res.status)

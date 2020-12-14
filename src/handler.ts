@@ -1,7 +1,7 @@
-import http from 'http'
+import { IncomingMessage, RequestListener } from 'http'
 import Cache from 'hybrid-disk-cache'
 import { gzipSync } from 'zlib'
-import { initPurgeTimer, stopPurgeTimer } from './cache-manager'
+import { initPurgeTimer, serveCache, stopPurgeTimer } from './cache-manager'
 import Renderer, { InitArgs } from './renderer'
 import {
   filterUrl,
@@ -10,12 +10,13 @@ import {
   mergeConfig,
   ParamFilter,
   serve,
-  serveCache,
 } from './utils'
 
-function matchRule(conf: HandlerConfig, url: string) {
+function matchRule(conf: HandlerConfig, req: IncomingMessage) {
+  const err = ['GET', 'HEAD'].indexOf(req.method) === -1
+  if (err) return { matched: false, ttl: -1 }
   for (const rule of conf.rules) {
-    if (url && new RegExp(rule.regex).test(url)) {
+    if (req.url && new RegExp(rule.regex).test(req.url)) {
       return { matched: true, ttl: rule.ttl }
     }
   }
@@ -48,8 +49,8 @@ type WrappedHandler = (
   cache: Cache,
   conf: HandlerConfig,
   renderer: RendererType,
-  plainHandler: http.RequestListener
-) => http.RequestListener
+  plainHandler: RequestListener
+) => RequestListener
 
 // mutex lock to prevent same page rendered more than once
 const SYNC_LOCK = new Set<string>()
@@ -57,32 +58,31 @@ const SYNC_LOCK = new Set<string>()
 const wrap: WrappedHandler = (cache, conf, renderer, plainHandler) => {
   return async (req, res) => {
     req.url = filterUrl(req.url, conf.paramFilter)
-    const { matched, ttl } = matchRule(conf, req.url)
+    const { matched, ttl } = matchRule(conf, req)
     if (!matched) return plainHandler(req, res)
 
-    const status = await serveCache(cache, SYNC_LOCK, req, res)
-    if (status === 'hit') return
+    const start = process.hrtime()
+    const { status, stop } = await serveCache(cache, SYNC_LOCK, req, res)
+    if (stop) return log(start, status, req.url)
 
     SYNC_LOCK.add(req.url)
 
-    const start = process.hrtime()
     const args = { path: req.url, headers: req.headers, method: req.method }
     const rv = await renderer.render(args)
 
     // rv.body is a Buffer in JSON format: { type: 'Buffer', data: [...] }
     const body = Buffer.from(rv.body)
-    if (status === 'miss') serve(res, rv)
-
-    const forced = req.headers['x-cache-status'] === 'update'
-    const label = forced ? 'force' : status === 'miss' ? 'miss' : 'update'
-    log(start, label, req.url)
+    // stale means already served from cache with old ver, just update the cache
+    if (status !== 'stale') serve(res, rv)
+    // stale will print 2 lines, first 'stale', second 'update'
+    log(start, status === 'stale' ? 'update' : status, req.url)
 
     if (rv.statusCode === 200 && body.length > 0) {
       // save gzipped data
       const buf = isZipped(rv.headers) ? body : gzipSync(body)
       cache.set('body:' + req.url, buf, ttl)
       cache.set('header:' + req.url, toBuffer(rv.headers), ttl)
-    } else if (forced) {
+    } else if (status === 'force') {
       // updating but empty result
       cache.del('body:' + req.url)
       cache.del('header:' + req.url)

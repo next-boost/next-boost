@@ -21,6 +21,10 @@ describe('cached handler', () => {
     server = new http.Server(cached.handler)
   })
 
+  it('404 with wrong method', done => {
+    request(server).delete('/404').expect(404).end(done)
+  })
+
   it('miss /hello', done => {
     request(server)
       .get('/hello')
