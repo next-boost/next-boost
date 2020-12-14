@@ -20,21 +20,6 @@
     "name": "Rakuraku Jyo",
     "email": "jyo.rakuraku@gmail.com"
   },
-  "nyc": {
-    "include": [
-      "src/**/*.ts"
-    ],
-    "extension": [
-      ".ts"
-    ],
-    "reporter": [
-      "text",
-      "text-summary",
-      "lcovonly",
-      "html"
-    ],
-    "sourceMap": true
-  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/rjyo/next-boost.git"
