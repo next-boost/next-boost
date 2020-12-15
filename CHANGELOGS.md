@@ -1,8 +1,18 @@
 # CHANGELOGS
 
+## 0.8.5
+
+- Refactor
+- Add back the `quiet` flag
+
+## 0.8.4
+
+- Add `Sync Lock`. When handling simultaneous requests, the first one will be rendered and the rest served from the cache.
+- `quiet` flag removed
+
 ## 0.7.4
 
-Use `http.Server` to render the result. No more need to mock the `ServerResponse`.
+- Use `http.Server` to render the result. No more need to mock the `ServerResponse`.
 
 ## 0.7.3
 
