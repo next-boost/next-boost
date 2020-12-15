@@ -65,6 +65,8 @@ const wrap: WrappedHandler = (cache, conf, renderer, plainHandler) => {
     const start = process.hrtime()
     const { status, stop } = await serveCache(cache, SYNC_LOCK, req, res)
     if (stop) return !conf.quiet && log(start, status, req.url)
+    // log the time took for staled
+    if (status === 'stale') !conf.quiet && log(start, status, req.url)
 
     SYNC_LOCK.add(req.url)
 
