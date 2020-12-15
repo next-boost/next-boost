@@ -1,6 +1,6 @@
 # CHANGELOGS
 
-## 0.8.5
+## 0.8.6
 
 - Refactor
 - Add back the `quiet` flag
