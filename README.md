@@ -179,7 +179,7 @@ Logging is enabled by default. If you use `next-boost` programmatically, you can
 
 ```javascript
 ...
-const cached = await CachedHandler({ script, args, quiet: true });
+const cached = await CachedHandler(args, { quiet: true });
 ...
 ```
 
