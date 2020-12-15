@@ -36,6 +36,7 @@ function mergeConfig(c: HandlerConfig = {}) {
     try {
       const f = require(configFile) as HandlerConfig
       c.cache = Object.assign(f.cache || {}, c.cache || {})
+      c.quiet = c.quiet || f.quiet
       c = Object.assign(f, c)
       console.log('  Loaded next-boost config from %s', c.filename)
     } catch (error) {
