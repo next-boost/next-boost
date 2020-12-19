@@ -2,7 +2,9 @@
 
 # next-boost
 
-`next-boost` is a middleware which adds a disk cache layer to your SSR applications. It was built originally for `Next.js` SSR applications and should work with any node.js `http.Server` based application.
+`next-boost` adds a cache layer to your SSR (Server-Side Rendering) applications. It was built originally for `Next.js` and should work with any node.js `http.Server` based application.
+
+`next-boost` achieves [great performance](#performance) by running the slow SSR on a different thread and serves the cache using the main thread.
 
 If you are familiar with `Next.js`, `next-boost` can be considered as an implementation of Incremental Static Regeneration which works with `getServerSideProps`.
 
