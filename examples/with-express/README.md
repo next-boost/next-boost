@@ -14,7 +14,7 @@ npm run dev
 # to build the next.js app
 npm run build
 # start the express server in production mode
-node start
+npm start
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
