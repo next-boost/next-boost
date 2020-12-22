@@ -17,7 +17,7 @@ type RenderOptions = {
 export type RenderResult = {
   statusCode: number
   headers: { [key: string]: any }
-  body: unknown
+  body: any
 }
 
 let server: http.Server
