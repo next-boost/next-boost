@@ -87,7 +87,8 @@ function send(
     res.setHeader(k, headers[k])
   }
   res.statusCode = 200
-  res.removeHeader('content-length')
+  res.removeHeader('transfer-encoding')
+  res.setHeader('content-length', Buffer.byteLength(body))
   res.setHeader('content-encoding', 'gzip')
   const stream = new PassThrough()
   stream.pipe(res)
