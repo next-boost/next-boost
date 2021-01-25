@@ -132,6 +132,21 @@ By default, each page with different URLs will be cached separately. But in some
 }
 ```
 
+### Change the cache key
+
+By default, the URL will be used as the key for cached pages. If you want to server pages from different domains or by different user-agent, you can use this function to custom the cache key.
+
+Notes:
+- If there's any exception thrown from this function, or the returned value is not a `string`, your server will crash.
+
+```javascript
+// in .next-boost.js
+{
+  ...
+  cacheKey: (req) => (req.headers.host || '') + ':' + req.url
+}
+```
+
 ## All Configurable Options
 
 If available, `.next-boost.js` at project root will be used. If you use next-boost programmatically, the filename can be changed in options you passed to `CachedHandler`.
@@ -164,6 +179,7 @@ interface HandlerConfig {
   }
   rules?: Array<URLCacheRule>
   paramFilter?: ParamFilter
+  cacheKey?: CacheKeyBuilder
 }
 
 interface URLCacheRule {
@@ -172,6 +188,7 @@ interface URLCacheRule {
 }
 
 type ParamFilter = (param: string) => boolean
+type CacheKeyBuilder = (req: IncomingMessage) => string
 ```
 
 ### Logging
