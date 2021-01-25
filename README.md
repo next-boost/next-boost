@@ -132,7 +132,7 @@ By default, each page with different URLs will be cached separately. But in some
 }
 ```
 
-### Change the cache key
+### Changing the cache key
 
 By default, the URL will be used as the key for cached pages. If you want to server pages from different domains or by different user-agent, you can use this function to custom the cache key.
 
