@@ -28,7 +28,7 @@ describe('cached handler', () => {
   it('miss /hello', done => {
     request(server)
       .get('/hello')
-      .end((err, res) => {
+      .end((_, res) => {
         expect(res.text).toEqual('hello')
         done()
       })
@@ -37,7 +37,7 @@ describe('cached handler', () => {
   it('hit GET /hello', done => {
     request(server)
       .get('/hello')
-      .end((err, res) => {
+      .end((_, res) => {
         expect(res.text).toEqual('hello')
         done()
       })
@@ -46,7 +46,7 @@ describe('cached handler', () => {
   it('hit HEAD /hello', done => {
     request(server)
       .head('/hello')
-      .end((err, res) => {
+      .end((_, res) => {
         expect(res.status).toEqual(200)
         done()
       })
@@ -56,7 +56,7 @@ describe('cached handler', () => {
     setTimeout(() => {
       request(server)
         .get('/hello')
-        .end((err, res) => {
+        .end((_, res) => {
           expect(res.text).toEqual('hello')
           done()
         })
@@ -77,7 +77,7 @@ describe('cached handler', () => {
   it('update /hello-304', done => {
     request(server)
       .get('/hello-304')
-      .end((err, res) => {
+      .end((_, res) => {
         expect(res.status).toEqual(304)
         done()
       })
@@ -86,7 +86,7 @@ describe('cached handler', () => {
   it('miss /hello-zip', done => {
     request(server)
       .get('/hello-zip')
-      .end((err, res) => {
+      .end((_, res) => {
         expect(res.text).toEqual('hello')
         done()
       })
@@ -95,7 +95,7 @@ describe('cached handler', () => {
   it('bypass /unknown', done => {
     request(server)
       .get('/unknown')
-      .end((err, res) => {
+      .end((_, res) => {
         expect(res.status).toEqual(404)
         done()
       })
@@ -105,7 +105,7 @@ describe('cached handler', () => {
     request(server)
       .get('/hello')
       .set('x-cache-status', 'update')
-      .end((err, res) => {
+      .end((_, res) => {
         expect(res.text).toEqual('hello')
         done()
       })
@@ -115,7 +115,7 @@ describe('cached handler', () => {
     request(server)
       .get('/hello-empty')
       .set('x-cache-status', 'update')
-      .end((err, res) => {
+      .end((_, res) => {
         expect(res.status).toEqual(200)
         done()
       })
@@ -135,7 +135,13 @@ describe('cached handler with different conf', () => {
     const script = require.resolve('./mock')
     cached = await CachedHandler(
       { script },
-      { quiet: true, paramFilter: () => true }
+      {
+        quiet: false,
+        paramFilter: () => true,
+        cacheKey: req => {
+          return req.url + '_001'
+        },
+      }
     )
     server = new http.Server(cached.handler)
   })
@@ -145,6 +151,25 @@ describe('cached handler with different conf', () => {
       .get('/unknown')
       .end((_, res) => {
         expect(res.status).toEqual(404)
+        done()
+      })
+  })
+
+  it('use the custom cache key: miss', done => {
+    request(server)
+      .get('/hello')
+      .end((_, res) => {
+        expect(res.text).toEqual('hello')
+        expect(cached.cache.has('body:/hello_001')).toEqual('hit')
+        done()
+      })
+  })
+
+  it('use the custom cache key: hit', done => {
+    request(server)
+      .get('/hello')
+      .end((_, res) => {
+        expect(res.text).toEqual('hello')
         done()
       })
   })

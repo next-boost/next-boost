@@ -32,6 +32,8 @@ interface URLCacheRule {
   ttl: number
 }
 
+export type CacheKeyBuilder = (req: IncomingMessage) => string
+
 export interface HandlerConfig {
   filename?: string
   quiet?: boolean
@@ -42,6 +44,7 @@ export interface HandlerConfig {
   }
   rules?: Array<URLCacheRule>
   paramFilter?: ParamFilter
+  cacheKey?: CacheKeyBuilder
 }
 
 type RendererType = ReturnType<typeof Renderer>
@@ -58,17 +61,20 @@ const SYNC_LOCK = new Set<string>()
 
 const wrap: WrappedHandler = (cache, conf, renderer, plainHandler) => {
   return async (req, res) => {
+    const key = conf.cacheKey ? conf.cacheKey(req) : req.url
     req.url = filterUrl(req.url, conf.paramFilter)
     const { matched, ttl } = matchRule(conf, req)
     if (!matched) return plainHandler(req, res)
 
     const start = process.hrtime()
-    const { status, stop } = await serveCache(cache, SYNC_LOCK, req, res)
+    const fc = req.headers['x-cache-status'] === 'update' // forced
+
+    const { status, stop } = await serveCache(cache, SYNC_LOCK, key, fc, res)
     if (stop) return !conf.quiet && log(start, status, req.url)
     // log the time took for staled
     if (status === 'stale') !conf.quiet && log(start, status, req.url)
 
-    SYNC_LOCK.add(req.url)
+    SYNC_LOCK.add(key)
 
     const args = { path: req.url, headers: req.headers, method: req.method }
     const rv = await renderer.render(args)
@@ -83,15 +89,15 @@ const wrap: WrappedHandler = (cache, conf, renderer, plainHandler) => {
     if (rv.statusCode === 200 && body.length > 0) {
       // save gzipped data
       const buf = isZipped(rv.headers) ? body : gzipSync(body)
-      cache.set('body:' + req.url, buf, ttl)
-      cache.set('header:' + req.url, toBuffer(rv.headers), ttl)
+      cache.set('body:' + key, buf, ttl)
+      cache.set('header:' + key, toBuffer(rv.headers), ttl)
     } else if (status === 'force') {
       // updating but empty result
-      cache.del('body:' + req.url)
-      cache.del('header:' + req.url)
+      cache.del('body:' + key)
+      cache.del('header:' + key)
     }
 
-    SYNC_LOCK.delete(req.url)
+    SYNC_LOCK.delete(key)
   }
 }
 

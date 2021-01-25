@@ -13,7 +13,7 @@ describe('serve cache', () => {
   cache.set('header:' + url, data)
 
   const server = new http.Server(async (req, res) => {
-    const { status } = await serveCache(cache, lock, req, res)
+    const { status } = await serveCache(cache, lock, req.url, false, res)
     expect(status).toEqual('hit')
   })
 
@@ -31,7 +31,8 @@ describe('serve cache', () => {
 
   it('skip cache when x-cache-status = update', done => {
     const server = new http.Server(async (req, res) => {
-      const { status, stop } = await serveCache(cache, lock, req, res)
+      const fc = req.headers['x-cache-status'] === 'update' // forced
+      const { status, stop } = await serveCache(cache, lock, req.url, fc, res)
       expect(status).toEqual('force')
       expect(stop).toBeFalsy()
       res.end('BBB')

@@ -1,4 +1,4 @@
-import { IncomingMessage, ServerResponse } from 'http'
+import { ServerResponse } from 'http'
 import Cache from 'hybrid-disk-cache'
 import { PassThrough } from 'stream'
 import { log, sleep } from './utils'
@@ -31,28 +31,29 @@ export function stopPurgeTimer(): void {
 export async function serveCache(
   cache: Cache,
   lock: Set<string>,
-  req: IncomingMessage,
+  key: string,
+  forced: boolean,
   res: ServerResponse
 ): Promise<ServeResult> {
   const rv: ServeResult = { status: 'force', stop: false }
-  if (req.headers['x-cache-status'] === 'update') return rv
+  if (forced) return rv
 
-  rv.status = cache.has('body:' + req.url)
+  rv.status = cache.has('body:' + key)
   // forced to skip cache or first-time miss
-  if (!lock.has(req.url) && rv.status === 'miss') return rv
+  if (!lock.has(key) && rv.status === 'miss') return rv
 
   // non first-time miss, wait for the cache
-  if (rv.status === 'miss') await waitAndServe(() => lock.has(req.url), rv)
+  if (rv.status === 'miss') await waitAndServe(() => lock.has(key), rv)
 
   const payload = { body: null, headers: null }
   if (!rv.stop) {
-    payload.body = cache.get('body:' + req.url)
-    payload.headers = JSON.parse(cache.get('header:' + req.url).toString())
+    payload.body = cache.get('body:' + key)
+    payload.headers = JSON.parse(cache.get('header:' + key).toString())
   }
   send(payload, res)
 
   // no need to run update again
-  if ((lock.has(req.url) && rv.status === 'stale') || rv.status === 'hit') {
+  if ((lock.has(key) && rv.status === 'stale') || rv.status === 'hit') {
     rv.stop = true
   }
 
