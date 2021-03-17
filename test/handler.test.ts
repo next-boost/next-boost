@@ -179,3 +179,35 @@ describe('cached handler with different conf', () => {
     cached.close()
   })
 })
+
+describe('cached handler with paramFilter conf', () => {
+  let cached: CHReturn
+  let server: http.Server
+
+  beforeAll(async function () {
+    const script = require.resolve('./mock')
+    cached = await CachedHandler(
+      { script },
+      {
+        quiet: false,
+        paramFilter: p => p !== 'p1',
+      }
+    )
+    server = new http.Server(cached.handler)
+  })
+
+  it('filters the param from the cache key', done => {
+    request(server)
+      .get('/params?p1=1&p2=2')
+      .end((_, res) => {
+        expect(res.text).toEqual('params')
+        expect(cached.cache.has('body:/params?p2=2')).toEqual('hit')
+        done()
+      })
+  })
+
+  afterAll(() => {
+    server.close()
+    cached.close()
+  })
+})

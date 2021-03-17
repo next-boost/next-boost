@@ -61,8 +61,8 @@ const SYNC_LOCK = new Set<string>()
 
 const wrap: WrappedHandler = (cache, conf, renderer, plainHandler) => {
   return async (req, res) => {
-    const key = conf.cacheKey ? conf.cacheKey(req) : req.url
     req.url = filterUrl(req.url, conf.paramFilter)
+    const key = conf.cacheKey ? conf.cacheKey(req) : req.url
     const { matched, ttl } = matchRule(conf, req)
     if (!matched) return plainHandler(req, res)
 
