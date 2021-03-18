@@ -3,6 +3,9 @@ import { RequestListener } from '../src/renderer'
 
 export default async function init(): Promise<RequestListener> {
   const cb: RequestListener = (req, res) => {
+    if (req.url.startsWith('/params')) {
+      res.write('params')
+    }
     if (req.url === '/hello') {
       res.write('hello')
     } else if (req.url === '/hello-zip') {
