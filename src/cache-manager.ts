@@ -1,35 +1,18 @@
 import { ServerResponse } from 'http'
-import Cache from 'hybrid-disk-cache'
 import { PassThrough } from 'stream'
-import { log, sleep } from './utils'
-
-let interval: NodeJS.Timeout
+import { CacheAdapter } from './handler'
+import { sleep } from './utils'
 
 const MAX_WAIT = 10000 // 10 seconds
 const INTERVAL = 10 // 10 ms
 
 type ServeResult = {
-  status: ReturnType<Cache['has']> | 'force' | 'error'
+  status: ReturnType<CacheAdapter['has']> | 'force' | 'error'
   stop: boolean
 }
 
-export function initPurgeTimer(cache: Cache): void {
-  if (interval) return
-  const tbd = Math.min(cache.tbd, 3600)
-  console.log('  Cache manager inited, will start to purge in %ds', tbd)
-  interval = setInterval(() => {
-    const start = process.hrtime()
-    const rv = cache.purge()
-    log(start, 'purge', `purged all ${rv} inactive record(s)`)
-  }, tbd * 1000)
-}
-
-export function stopPurgeTimer(): void {
-  clearInterval(interval)
-}
-
 export async function serveCache(
-  cache: Cache,
+  cache: CacheAdapter,
   lock: Set<string>,
   key: string,
   forced: boolean,

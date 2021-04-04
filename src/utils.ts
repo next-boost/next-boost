@@ -26,7 +26,6 @@ function serve(res: ServerResponse, rv: RenderResult) {
 
 function mergeConfig(c: HandlerConfig = {}) {
   const conf: HandlerConfig = {
-    cache: { ttl: 60, tbd: 3600 },
     rules: [{ regex: '.*', ttl: 3600 }],
   }
 
@@ -35,7 +34,6 @@ function mergeConfig(c: HandlerConfig = {}) {
   if (fs.existsSync(configFile)) {
     try {
       const f = require(configFile) as HandlerConfig
-      c.cache = Object.assign(f.cache || {}, c.cache || {})
       c.quiet = c.quiet || f.quiet
       c = Object.assign(f, c)
       console.log('  Loaded next-boost config from %s', c.filename)
@@ -44,9 +42,6 @@ function mergeConfig(c: HandlerConfig = {}) {
     }
   }
 
-  // deep merge cache and remove it
-  Object.assign(conf.cache, c.cache)
-  delete c.cache
   Object.assign(conf, c)
 
   return conf

@@ -27,8 +27,8 @@
   "homepage": "https://github.com/rjyo/next-boost",
   "license": "MIT",
   "dependencies": {
-    "hybrid-disk-cache": "^0.1.6",
-    "multee": "^0.2.3"
+    "multee": "^0.2.3",
+    "next-boost-hdc-adapter": "^0.10.1"
   },
   "peerDependencies": {
     "next": "^10.0.0"

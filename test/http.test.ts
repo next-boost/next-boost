@@ -1,11 +1,12 @@
 import http from 'http'
-import Cache from 'hybrid-disk-cache'
+import Cache from 'next-boost-hdc-adapter'
 import request from 'supertest'
 import { gzipSync } from 'zlib'
 import { serveCache } from '../src/cache-manager'
 
 describe('serve cache', () => {
-  const cache = new Cache()
+  console.log(Cache)
+  const cache = Cache.init()
   const lock = new Set<string>()
   const url = '/p1'
   cache.set('body:' + url, gzipSync(Buffer.from('AAA')))
@@ -46,5 +47,9 @@ describe('serve cache', () => {
         expect(res.text).toEqual('BBB')
         done()
       })
+  })
+
+  afterAll(() => {
+    Cache.shutdown()
   })
 })

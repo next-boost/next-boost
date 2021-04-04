@@ -1,7 +1,7 @@
 import { IncomingMessage, RequestListener } from 'http'
-import Cache from 'hybrid-disk-cache'
+import Cache from 'next-boost-hdc-adapter'
 import { gzipSync } from 'zlib'
-import { initPurgeTimer, serveCache, stopPurgeTimer } from './cache-manager'
+import { serveCache } from './cache-manager'
 import Renderer, { InitArgs } from './renderer'
 import {
   filterUrl,
@@ -20,7 +20,7 @@ function matchRule(conf: HandlerConfig, req: IncomingMessage) {
       return { matched: true, ttl: rule.ttl }
     }
   }
-  return { matched: false, ttl: conf.cache.ttl }
+  return { matched: false, ttl: 0 }
 }
 
 function toBuffer(o: any) {
@@ -34,15 +34,20 @@ interface URLCacheRule {
 
 export type CacheKeyBuilder = (req: IncomingMessage) => string
 
+export type CacheStatus = 'hit' | 'stale' | 'miss'
+
+export type CacheAdapter = {
+  set(key: string, value: Buffer, ttl?: number): void
+  get(key: string, defaultValue?: Buffer): Buffer | undefined
+  has(key: string): CacheStatus
+  del(key: string): void
+}
+
 export interface HandlerConfig {
-  filename?: string
+  filename?: string // config file's path
   quiet?: boolean
-  cache?: {
-    ttl?: number
-    tbd?: number
-    path?: string
-  }
   rules?: Array<URLCacheRule>
+  cacheAdapter?: CacheAdapter
   paramFilter?: ParamFilter
   cacheKey?: CacheKeyBuilder
 }
@@ -50,7 +55,7 @@ export interface HandlerConfig {
 type RendererType = ReturnType<typeof Renderer>
 
 type WrappedHandler = (
-  cache: Cache,
+  cache: CacheAdapter,
   conf: HandlerConfig,
   renderer: RendererType,
   plainHandler: RequestListener
@@ -111,11 +116,7 @@ export default async function CachedHandler(
   const conf = mergeConfig(options)
 
   // the cache
-  const cache = new Cache(conf.cache)
-  console.log(`  Cache located at ${cache.path}`)
-
-  // purge timer
-  initPurgeTimer(cache)
+  const cache = conf.cacheAdapter || Cache.init()
 
   const renderer = Renderer()
   await renderer.init(args)
@@ -126,7 +127,7 @@ export default async function CachedHandler(
     handler: wrap(cache, conf, renderer, plain),
     cache,
     close: () => {
-      stopPurgeTimer()
+      Cache.shutdown()
       renderer.kill()
     },
   }

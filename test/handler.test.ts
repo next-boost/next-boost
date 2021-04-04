@@ -193,6 +193,7 @@ describe('cached handler with paramFilter conf', () => {
         paramFilter: p => p !== 'p1',
       }
     )
+    cached.cache.del('body:/params?p2=2')
     server = new http.Server(cached.handler)
   })
 

@@ -33,19 +33,16 @@ describe('utils', () => {
   })
 
   it('merge config / default changed', () => {
-    const conf = mergeConfig({ cache: { ttl: 1 } })
+    const conf = mergeConfig({})
     expect(conf.rules.length).toEqual(1)
     expect(conf.rules[0].regex).toEqual('.*')
     expect(conf.filename).toEqual('.next-boost.js')
-    expect(conf.cache.ttl).toEqual(1)
-    expect(conf.cache.path).toBeUndefined()
   })
 
   it('merge config / with basic config', () => {
     const conf = mergeConfig({
       filename: '.next-boost.sample.js',
     })
-    expect(conf.cache.path).toEqual('/tmp/jinja')
     expect(conf.rules.length).toEqual(2)
     expect(conf.rules[0].regex).toEqual('^/blog.*')
     expect(conf.filename).toEqual('.next-boost.sample.js')
@@ -55,7 +52,6 @@ describe('utils', () => {
     const conf = mergeConfig({
       filename: './test/fixtures/conf1.js',
     })
-    expect(conf.cache.path).toBeUndefined()
     expect(conf.rules.length).toEqual(1)
     expect(conf.rules[0].regex).toEqual('.*')
     expect(conf.filename).toEqual('./test/fixtures/conf1.js')

@@ -1,4 +1,6 @@
-// An example with default cache adapter: hybrid-disk-cache
+// An example with custom cache adapter
+const HDCCache = require('next-boost-hdc-adapter').default
+
 module.exports = {
   rules: [
     {
@@ -13,4 +15,9 @@ module.exports = {
   paramFilter: p => {
     p === 'fbclid' || p.startsWith('utm_') ? false : true
   },
+  cacheAdapter: HDCCache.init({
+    path: '/tmp/hdc',
+    ttl: 60,
+    tbd: 3600,
+  }),
 }
