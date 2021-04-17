@@ -66,6 +66,7 @@ const SYNC_LOCK = new Set<string>()
 
 const wrap: WrappedHandler = (cache, conf, renderer, plainHandler) => {
   return async (req, res) => {
+    const urlBeforeFilter = req.url
     req.url = filterUrl(req.url, conf.paramFilter)
     const key = conf.cacheKey ? conf.cacheKey(req) : req.url
     const { matched, ttl } = matchRule(conf, req)
@@ -78,6 +79,10 @@ const wrap: WrappedHandler = (cache, conf, renderer, plainHandler) => {
     if (stop) return !conf.quiet && log(start, status, req.url)
     // log the time took for staled
     if (status === 'stale') !conf.quiet && log(start, status, req.url)
+
+    // restore original url so that all params are passed to
+    // the original renderer on cache miss
+    req.url = urlBeforeFilter
 
     SYNC_LOCK.add(key)
 
