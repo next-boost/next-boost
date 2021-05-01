@@ -95,10 +95,24 @@ It even outperforms next.js's static generated page (`getStaticProps`), handling
 
 `next-boost` implements a server-side cache in the manner of [stale-while-revalidate](https://web.dev/stale-while-revalidate/). When an expired (`stale`) page is accessed, the cache will be served and at the same time, a background process will fetch the latest version (`revalidate`) of that page and save it to the cache.
 
+The following config will cache URIs matching `^/blog.*`. Only pages match `rules` will be handled by `next-boost` and there's no `exclude` rules.
+
+```javascript
+module.exports = {
+  rules: [
+    { regex: '^/blog.*', ttl: 300 },
+  ],
+}
+```
+
 There are 2 parameters to control the behavior of the cache:
 
-- `ttl (time-to-live)`: After `ttl`, the cache will be revalidated. And a cached page's `ttl` will be updated when a page is revalidated.
+- `ttl (time-to-live)`: After `ttl` seconds, the cache will be revalidated. And a cached page's `ttl` will be updated when a page is revalidated.
 - `tbd (time-before-deletion)`: When a page is not hit again in `ttl + tbd` seconds, it will be completely remove from cache.
+
+
+Above: only caching pages with URL start with `/blog`.
+
 
 ## Advanced Usages
 
@@ -154,18 +168,6 @@ If available, `.next-boost.js` at project root will be used. If you use next-boo
 tips: If you are using `next-boost` cli with Next.js, you may want to use the config file.
 
 And here's an example [`.next-boost.sample.js`](https://github.com/rjyo/next-boost/blob/master/.next-boost.sample.js) in the repo.
-
-By default, all URLs will be cached under the default rule `.*`. You can change the rules programmatically or by `.next-boost.js`:
-
-```javascript
-module.exports = {
-  rules: [
-    { regex: '^/blog.*', ttl: 300 },
-  ],
-}
-```
-
-Above: only caching pages with URL start with `/blog`.
 
 
 ```typescript
