@@ -31,7 +31,7 @@
     "next-boost-hdc-adapter": "^0.10.1"
   },
   "peerDependencies": {
-    "next": "^10.0.0"
+    "next": "^10.0.0 || ^11.0.0"
   },
   "devDependencies": {
     "@types/better-sqlite3": "^5.4.0",
