@@ -1,4 +1,6 @@
 #!/usr/bin/env node
+process.env.NODE_ENV = 'production'
+
 import http from 'http'
 import { Argv, parse } from '../cli'
 import CachedHandler from '../handler'
