@@ -6,7 +6,7 @@
 
 `next-boost` achieves [great performance](#performance) by rendering webpages on `worker_threads` while serving the cached on the main thread.
 
-If you are familiar with `Next.js`, `next-boost` can be considered as an implementation of Incremental Static Regeneration which works with `getServerSideProps`.
+If you are familiar with `Next.js`, `next-boost` can be considered as an implementation of Incremental Static Regeneration which works with `getServerSideProps`. And it's not meant to be used with `getStaticProps`, in which Next.js will do the cache for you.
 
 ```bash
 $ npm install next-boost --save
