@@ -10,14 +10,14 @@ describe('cached handler', () => {
   let cached: CHReturn
   let server: http.Server
 
-  beforeAll(async function () {
+  beforeAll(async () => {
     const script = require.resolve('./mock')
     cached = await CachedHandler(
       { script },
       { rules: [{ regex: '/hello.*', ttl: 0.5 }], quiet: true }
     )
-    cached.cache.del('body:/hello')
-    cached.cache.del('header:/hello')
+    await cached.cache.del('body:/hello')
+    await cached.cache.del('header:/hello')
     server = new http.Server(cached.handler)
   })
 
@@ -158,9 +158,9 @@ describe('cached handler with different conf', () => {
   it('use the custom cache key: miss', done => {
     request(server)
       .get('/hello')
-      .end((_, res) => {
+      .end(async (_, res) => {
         expect(res.text).toEqual('hello')
-        expect(cached.cache.has('body:/hello_001')).toEqual('hit')
+        expect(await cached.cache.has('body:/hello_001')).toEqual('hit')
         done()
       })
   })
@@ -184,7 +184,7 @@ describe('cached handler with paramFilter conf', () => {
   let cached: CHReturn
   let server: http.Server
 
-  beforeAll(async function () {
+  beforeAll(async () => {
     const script = require.resolve('./mock')
     cached = await CachedHandler(
       { script },
@@ -193,16 +193,16 @@ describe('cached handler with paramFilter conf', () => {
         paramFilter: p => p !== 'p1',
       }
     )
-    cached.cache.del('body:/params?p2=2')
+    await cached.cache.del('body:/params?p2=2')
     server = new http.Server(cached.handler)
   })
 
   it('filters the param from the cache key', done => {
     request(server)
       .get('/params?p1=1&p2=2')
-      .end((_, res) => {
+      .end(async (_, res) => {
         expect(res.text).toEqual('params')
-        expect(cached.cache.has('body:/params?p2=2')).toEqual('hit')
+        expect(await cached.cache.has('body:/params?p2=2')).toEqual('hit')
         done()
       })
   })

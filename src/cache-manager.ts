@@ -6,8 +6,12 @@ import { sleep } from './utils'
 const MAX_WAIT = 10000 // 10 seconds
 const INTERVAL = 10 // 10 ms
 
+type HasReturn = ReturnType<CacheAdapter['has']> extends Promise<infer T>
+  ? T
+  : never
+
 type ServeResult = {
-  status: ReturnType<CacheAdapter['has']> | 'force' | 'error'
+  status: HasReturn | 'force' | 'error'
   stop: boolean
 }
 
@@ -21,7 +25,7 @@ export async function serveCache(
   const rv: ServeResult = { status: 'force', stop: false }
   if (forced) return rv
 
-  rv.status = cache.has('body:' + key)
+  rv.status = await cache.has('body:' + key)
   // forced to skip cache or first-time miss
   if (!lock.has(key) && rv.status === 'miss') return rv
 
@@ -30,8 +34,8 @@ export async function serveCache(
 
   const payload = { body: null, headers: null }
   if (!rv.stop) {
-    payload.body = cache.get('body:' + key)
-    payload.headers = JSON.parse(cache.get('header:' + key).toString())
+    payload.body = await cache.get('body:' + key)
+    payload.headers = JSON.parse((await cache.get('header:' + key)).toString())
   }
   send(payload, res)
 

@@ -10,16 +10,16 @@ describe('slow handler', () => {
   let cached: CHReturn
   let server: http.Server
 
-  beforeAll(async function () {
+  beforeAll(async () => {
     const script = require.resolve('./mock')
     cached = await CachedHandler(
       { script },
       { rules: [{ regex: '/slow-*', ttl: 0.5 }] }
     )
-    cached.cache.del('body:/slow-300')
-    cached.cache.del('header:/slow-300')
-    cached.cache.del('body:/slow-10100')
-    cached.cache.del('header:/slow-10100')
+    await cached.cache.del('body:/slow-300')
+    await cached.cache.del('header:/slow-300')
+    await cached.cache.del('body:/slow-10100')
+    await cached.cache.del('header:/slow-10100')
     server = new http.Server(cached.handler)
   })
 

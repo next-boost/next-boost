@@ -28,7 +28,7 @@
   "license": "MIT",
   "dependencies": {
     "multee": "^0.2.3",
-    "next-boost-hdc-adapter": "^0.10.1"
+    "next-boost-hdc-adapter": "^0.11.0"
   },
   "peerDependencies": {
     "next": "^10.0.0 || ^11.0.0"

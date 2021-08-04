@@ -5,17 +5,21 @@ import { gzipSync } from 'zlib'
 import { serveCache } from '../src/cache-manager'
 
 describe('serve cache', () => {
-  console.log(Cache)
   const cache = Cache.init()
   const lock = new Set<string>()
-  const url = '/p1'
-  cache.set('body:' + url, gzipSync(Buffer.from('AAA')))
-  const data = Buffer.from(JSON.stringify({ 'header-x': 'value-x' }))
-  cache.set('header:' + url, data)
+  let url: string
+  let server: http.Server
 
-  const server = new http.Server(async (req, res) => {
-    const { status } = await serveCache(cache, lock, req.url, false, res)
-    expect(status).toEqual('hit')
+  beforeAll(async () => {
+    url = '/p1'
+    await cache.set('body:' + url, gzipSync(Buffer.from('AAA')))
+    const data = Buffer.from(JSON.stringify({ 'header-x': 'value-x' }))
+    await cache.set('header:' + url, data)
+
+    server = new http.Server(async (req, res) => {
+      const { status } = await serveCache(cache, lock, req.url, false, res)
+      expect(status).toEqual('hit')
+    })
   })
 
   it('cached contents', done => {

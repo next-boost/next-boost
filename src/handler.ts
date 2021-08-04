@@ -37,10 +37,10 @@ export type CacheKeyBuilder = (req: IncomingMessage) => string
 export type CacheStatus = 'hit' | 'stale' | 'miss'
 
 export type CacheAdapter = {
-  set(key: string, value: Buffer, ttl?: number): void
-  get(key: string, defaultValue?: Buffer): Buffer | undefined
-  has(key: string): CacheStatus
-  del(key: string): void
+  set(key: string, value: Buffer, ttl?: number): Promise<void>
+  get(key: string, defaultValue?: Buffer): Promise<Buffer | undefined>
+  has(key: string): Promise<CacheStatus>
+  del(key: string): Promise<void>
 }
 
 export interface HandlerConfig {
@@ -94,12 +94,12 @@ const wrap: WrappedHandler = (cache, conf, renderer, plainHandler) => {
     if (rv.statusCode === 200 && body.length > 0) {
       // save gzipped data
       const buf = isZipped(rv.headers) ? body : gzipSync(body)
-      cache.set('body:' + key, buf, ttl)
-      cache.set('header:' + key, toBuffer(rv.headers), ttl)
+      await cache.set('body:' + key, buf, ttl)
+      await cache.set('header:' + key, toBuffer(rv.headers), ttl)
     } else if (status === 'force') {
       // updating but empty result
-      cache.del('body:' + key)
-      cache.del('header:' + key)
+      await cache.del('body:' + key)
+      await cache.del('header:' + key)
     }
 
     SYNC_LOCK.delete(key)
