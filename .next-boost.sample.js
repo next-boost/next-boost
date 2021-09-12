@@ -10,7 +10,5 @@ module.exports = {
       ttl: 10,
     },
   ],
-  paramFilter: p => {
-    p === 'fbclid' || p.startsWith('utm_') ? false : true
-  },
+  paramFilter: p => p !== 'fbclid' && !p.startsWith('utm_'),
 }
