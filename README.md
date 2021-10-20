@@ -161,6 +161,69 @@ Notes:
 }
 ```
 
+### Using rules resolver
+
+Alternatively you can provide a function instead of array inside your config.
+
+```javascript
+// in .next-boost.js
+{
+  ...
+  rules: (req) => {
+      if (req.url.startsWith('/blog')) {
+          return 300
+      }
+  }
+}
+```
+
+Function should return valid `ttl` for the request. If the function returns `0` or `falsy` value 
+the request will not be cached.
+
+The power that comes from this method is that you can decide if the request is cached or not
+more dynamically.
+
+For example you can automatically ignore all request from authenticated users based on the header:
+
+```javascript
+// in .next-boost.js
+{
+  ...
+  rules: (req) => {
+      if (req.headers.authorization) {
+          return false
+      }
+
+      return 1000 // cache all other requests for 1 second
+  }
+}
+```
+
+You can also get more complex rules done more easily then through regex. For example you wish different ttl for each of the pagination pages.
+
+```javascript
+// in .next-boost.js
+{
+  ...
+  rules: (req) => {
+    const [, p1] = url.split('?', 2)
+    const params = new URLSearchParams(p1)
+
+    return {
+        1: 5000,
+        2: 4000,
+        3: 3000,
+        4: 2000
+    }[params.get('page')] || 1000
+  }
+}
+```
+
+While you would need to write complex regex rule or potentially more rules it is easy to
+do it through JS logic.
+
+In the end if you prefer writting regex but wish to leverage JS logic you can always regex match inside a rules handler.
+
 ## All Configurable Options
 
 If available, `.next-boost.js` at project root will be used. If you use next-boost programmatically, the filename can be changed in options you passed to `CachedHandler`.
@@ -179,7 +242,7 @@ interface HandlerConfig {
     tbd?: number
     path?: string
   }
-  rules?: Array<URLCacheRule>
+  rules?: Array<URLCacheRule> | URLCacheRuleResolver
   paramFilter?: ParamFilter
   cacheKey?: CacheKeyBuilder
 }
@@ -188,6 +251,8 @@ interface URLCacheRule {
   regex: string
   ttl: number
 }
+
+type URLCacheRuleResolver = (req: IncomingMessage) => number
 
 type ParamFilter = (param: string) => boolean
 type CacheKeyBuilder = (req: IncomingMessage) => string
