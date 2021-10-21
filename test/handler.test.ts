@@ -212,3 +212,58 @@ describe('cached handler with paramFilter conf', () => {
     cached.close()
   })
 })
+
+describe('cached handler with rules handler conf', () => {
+  let cached: CHReturn
+  let server: http.Server
+
+  beforeAll(async () => {
+    const script = require.resolve('./mock')
+    cached = await CachedHandler(
+      { script },
+      {
+        rules: req => {
+          if (req.url === '/hello') {
+            return 0.5
+          }
+        },
+        quiet: true,
+      }
+    )
+    await cached.cache.del('body:/hello')
+    server = new http.Server(cached.handler)
+  })
+
+  it('bypass /unknown', done => {
+    request(server)
+      .get('/unknown')
+      .end((_, res) => {
+        expect(res.status).toEqual(404)
+        done()
+      })
+  })
+
+  it('use the custom cache key: miss', done => {
+    request(server)
+      .get('/hello')
+      .end(async (_, res) => {
+        expect(res.text).toEqual('hello')
+        expect(await cached.cache.has('body:/hello')).toEqual('hit')
+        done()
+      })
+  })
+
+  it('use the custom cache key: hit', done => {
+    request(server)
+      .get('/hello')
+      .end((_, res) => {
+        expect(res.text).toEqual('hello')
+        done()
+      })
+  })
+
+  afterAll(() => {
+    server.close()
+    cached.close()
+  })
+})

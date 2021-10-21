@@ -15,9 +15,18 @@ import {
 function matchRule(conf: HandlerConfig, req: IncomingMessage) {
   const err = ['GET', 'HEAD'].indexOf(req.method) === -1
   if (err) return { matched: false, ttl: -1 }
-  for (const rule of conf.rules) {
-    if (req.url && new RegExp(rule.regex).test(req.url)) {
-      return { matched: true, ttl: rule.ttl }
+
+  if (typeof conf.rules === 'function') {
+    const ttl = conf.rules(req)
+
+    if (ttl) {
+      return { matched: true, ttl }
+    }
+  } else {
+    for (const rule of conf.rules) {
+      if (req.url && new RegExp(rule.regex).test(req.url)) {
+        return { matched: true, ttl: rule.ttl }
+      }
     }
   }
   return { matched: false, ttl: 0 }
@@ -43,10 +52,12 @@ export type CacheAdapter = {
   del(key: string): Promise<void>
 }
 
+export type URLCacheRuleResolver = (req: IncomingMessage) => number
+
 export interface HandlerConfig {
   filename?: string // config file's path
   quiet?: boolean
-  rules?: Array<URLCacheRule>
+  rules?: Array<URLCacheRule> | URLCacheRuleResolver
   cacheAdapter?: CacheAdapter
   paramFilter?: ParamFilter
   cacheKey?: CacheKeyBuilder
