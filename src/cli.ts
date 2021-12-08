@@ -12,8 +12,9 @@ const helpMessage = `
   Options
     --port, -p      A port number on which to start the application
     --hostname, -H  Hostname on which to start the application
-    --help, -h      Displays this message
+    --grace         Milliseconds to wait before force-closing connections
     --quiet, -q     No log output
+    --help, -h      Displays this message
 `
 
 function help(argv?: string[]) {
@@ -30,6 +31,7 @@ const types: { [key: string]: any } = {
   '--quiet': Boolean,
   '--port': Number,
   '--hostname': String,
+  '--grace': Number,
 }
 
 const alias: { [key: string]: string } = {

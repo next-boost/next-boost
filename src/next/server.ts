@@ -2,6 +2,8 @@
 process.env.NODE_ENV = 'production'
 
 import http from 'http'
+import stoppable from 'stoppable'
+
 import { Argv, parse } from '../cli'
 import CachedHandler from '../handler'
 
@@ -11,19 +13,31 @@ const serve = async (argv: Argv) => {
   const hostname = argv['--hostname'] as string
   const quiet = argv['--quiet'] as boolean
   const dir = (argv['dir'] as string) || '.'
+  const grace = (argv['--grace'] as number) || 5000
 
   const script = require.resolve('./init')
   const rendererArgs = { script, args: { dir, dev: false } }
   const cached = await CachedHandler(rendererArgs, { quiet })
 
-  const server = new http.Server(cached.handler)
+  const server = stoppable(new http.Server(cached.handler), grace)
   server.listen(port, hostname, () => {
     console.log(`> Serving on http://${hostname || 'localhost'}:${port}`)
   })
   process.on('SIGTERM', () => {
     console.log('> Shutting down...')
     cached.close()
-    server.close()
+    server.stop((e, graceful) => {
+      if (e) {
+        console.error(e)
+        process.exit(1)
+      }
+      if (graceful) {
+        console.log('> Shutdown complete.')
+      } else {
+        console.log('> Force shutdown.')
+      }
+      process.exit(0)
+    })
   })
 }
 
