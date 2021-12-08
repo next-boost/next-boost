@@ -1,6 +1,6 @@
 {
   "name": "@next-boost/next-boost",
-  "version": "0.13.1",
+  "version": "0.13.3",
   "description": "Add a cache layer for next.js SSR pages. Use stale-while-revalidate to boost the performance.",
   "main": "dist/handler.js",
   "bin": {
@@ -28,6 +28,7 @@
   "license": "MIT",
   "dependencies": {
     "multee": "^0.2.3",
+    "next-boost-hdc-adapter": "^0.11.0",
     "stoppable": "^1.1.0"
   },
   "peerDependencies": {
@@ -45,7 +46,6 @@
     "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-prettier": "^4.0.0",
     "jest": "^27.0.1",
-    "next-boost-hdc-adapter": "^0.11.0",
     "prettier": "^2.1.2",
     "supertest": "^6.0.1",
     "ts-jest": "^27.0.1",

@@ -1,4 +1,4 @@
-[![CI](https://github.com/@next-boost/next-boost/workflows/CI/badge.svg)](https://github.com/@next-boost/next-boost/actions) [![Coverage Status](https://coveralls.io/repos/github/@next-boost/next-boost/badge.svg?branch=master&service=github)](https://coveralls.io/github/@next-boost/next-boost?branch=master) [![Maintainability](https://api.codeclimate.com/v1/badges/358f0b96e0b3b5cc55ab/maintainability)](https://codeclimate.com/github/@next-boost/next-boost/maintainability)
+[![CI](https://github.com/next-boost/next-boost/workflows/CI/badge.svg)](https://github.com/@next-boost/next-boost/actions) [![Coverage Status](https://coveralls.io/repos/github/next-boost/next-boost/badge.svg?branch=master)](https://coveralls.io/github/@next-boost/next-boost?branch=master) [![Maintainability](https://api.codeclimate.com/v1/badges/9ce7e4d0f1df533a319d/maintainability)](https://codeclimate.com/github/next-boost/next-boost/maintainability)
 
 # next-boost
 
