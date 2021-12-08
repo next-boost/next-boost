@@ -1,6 +1,6 @@
 This is a demo of using [Next.js](https://nextjs.org/), [express.js](https://github.com/expressjs/express) and `next-boost` together.
 
-## About this demo 
+## About this demo
 
 What you will see at http://localhost:3000/
 
@@ -19,4 +19,4 @@ npm start
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-The cache's behavior is defined in `.next-boost.js` and you can find more on the [next-boost's project page](https://github.com/rjyo/next-boost).
+The cache's behavior is defined in `.next-boost.js` and you can find more on the [next-boost's project page](https://github.com/@next-boost/next-boost).

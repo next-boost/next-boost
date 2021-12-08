@@ -1,4 +1,4 @@
-[![CI](https://github.com/rjyo/next-boost/workflows/CI/badge.svg)](https://github.com/rjyo/next-boost/actions) [![Coverage Status](https://coveralls.io/repos/github/rjyo/next-boost/badge.svg?branch=master&service=github)](https://coveralls.io/github/rjyo/next-boost?branch=master) [![Maintainability](https://api.codeclimate.com/v1/badges/358f0b96e0b3b5cc55ab/maintainability)](https://codeclimate.com/github/rjyo/next-boost/maintainability)
+[![CI](https://github.com/@next-boost/next-boost/workflows/CI/badge.svg)](https://github.com/@next-boost/next-boost/actions) [![Coverage Status](https://coveralls.io/repos/github/@next-boost/next-boost/badge.svg?branch=master&service=github)](https://coveralls.io/github/@next-boost/next-boost?branch=master) [![Maintainability](https://api.codeclimate.com/v1/badges/358f0b96e0b3b5cc55ab/maintainability)](https://codeclimate.com/github/@next-boost/next-boost/maintainability)
 
 # next-boost
 
@@ -18,9 +18,9 @@ $ npm install next-boost --save
 - Greatly reducing the server TTFB (time-to-first-byte)
 - Non-blocking main process for cache-serving and using `worker_threads` for SSR
 - Simultaneous requests with the first one rendered and the rest served from the cache
-- Small footprint with [less than 200 LOC](https://coveralls.io/github/rjyo/next-boost?branch=master)
+- Small footprint with [less than 200 LOC](https://coveralls.io/github/@next-boost/next-boost?branch=master)
 - Used in production with 300K pages cached
-- As a [database-disk-hybrid cache](https://github.com/rjyo/hybrid-disk-cache)
+- As a [database-disk-hybrid cache](https://github.com/@next-boost/hybrid-disk-cache)
     - no memory capacity limit, and works great on cheap VPSs
     - no need to add a cache layer server like varnish, nginx Cache and etc.
     - great performance, and may even have [better performace than pure file system](https://www.sqlite.org/fasterthanfs.html) cache
@@ -177,7 +177,7 @@ Alternatively you can provide a function instead of array inside your config.
 }
 ```
 
-Function should return valid `ttl` for the request. If the function returns `0` or `falsy` value 
+Function should return valid `ttl` for the request. If the function returns `0` or `falsy` value
 the request will not be cached.
 
 The power that comes from this method is that you can decide if the request is cached or not
@@ -230,7 +230,7 @@ If available, `.next-boost.js` at project root will be used. If you use next-boo
 
 tips: If you are using `next-boost` cli with Next.js, you may want to use the config file.
 
-And here's an example [`.next-boost.sample.js`](https://github.com/rjyo/next-boost/blob/master/.next-boost.sample.js) in the repo.
+And here's an example [`.next-boost.sample.js`](https://github.com/@next-boost/next-boost/blob/master/.next-boost.sample.js) in the repo.
 
 
 ```typescript
