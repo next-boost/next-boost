@@ -74,7 +74,7 @@ const wrap: WrappedHandler = (cache, conf, renderer, next) => {
     } catch (e) {
       console.error('Error saving payload to cache', e)
     } finally {
-      unlock(key, cache)
+      await unlock(key, cache)
     }
   }
 }
