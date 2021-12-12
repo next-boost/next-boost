@@ -1,8 +1,9 @@
 import fs from 'fs'
 import { ServerResponse } from 'http'
 import path from 'path'
-import { HandlerConfig } from './handler'
+
 import { RenderResult } from './renderer'
+import { HandlerConfig, ParamFilter } from './types'
 
 function isZipped(headers: { [key: string]: any }): boolean {
   const field = headers['content-encoding']
@@ -46,8 +47,6 @@ function mergeConfig(c: HandlerConfig = {}) {
 
   return conf
 }
-
-export type ParamFilter = (param: string) => boolean
 
 function filterUrl(url: string, filter?: ParamFilter) {
   if (!filter) return url

@@ -21,16 +21,16 @@ $ yarn add @next-boost/next-boost
 - Small footprint with [less than 200 LOC](https://coveralls.io/github/@next-boost/next-boost?branch=master)
 - Used in production with 300K pages cached
 - As a [database-disk-hybrid cache](https://github.com/@next-boost/hybrid-disk-cache)
-    - no memory capacity limit, and works great on cheap VPSs
-    - no need to add a cache layer server like varnish, nginx Cache and etc.
-    - great performance, and may even have [better performace than pure file system](https://www.sqlite.org/fasterthanfs.html) cache
-    - portability on major platforms
+  - no memory capacity limit, and works great on cheap VPSs
+  - no need to add a cache layer server like varnish, nginx Cache and etc.
+  - great performance, and may even have [better performace than pure file system](https://www.sqlite.org/fasterthanfs.html) cache
+  - portability on major platforms
 
 ## Use `next-boost` cli with Next.js
 
 After install the package, just change the start script from `next start` to `next-boost`. All `next start`'s command line arguments, like `-p` for specifing the port, are compatible.
 
-```
+```json
  "scripts": {
     ...
     "start": "next-boost", // previously `next start`
@@ -44,14 +44,13 @@ There's an example under `examples/nodejs`, which works with a plain `http.Serve
 
 To use it with `express.js` and `next.js`, please check `examples/with-express`.
 
-
 ## Performance
 
 By using `worker_threads`, the CPU-heavy SSR rendering will not blocking the main process from serving the cache.
 
 Here are the comparision of using `ApacheBench` on a blog post fetched from database. HTML prerendered and the db operation takes around 10~20ms. The page takes around 200ms for Next.js to render.
 
-```
+```bash
 $ /usr/local/bin/ab -n 200 -c 8 http://127.0.0.1:3000/blog/posts/2020/3/postname
 ```
 
@@ -59,7 +58,7 @@ Not a scientific benchmark, but the improvements are visibly huge.
 
 with `next start` (data fetched with `getServerSideProps`):
 
-```
+```text
 Document Length:        76424 bytes
 Concurrency Level:      8
 Time taken for tests:   41.855 seconds
@@ -75,7 +74,7 @@ Transfer rate:          357.58 [Kbytes/sec] received
 
 with the drop-in `next-boost` cli:
 
-```
+```text
 Document Length:        78557 bytes
 Concurrency Level:      8
 Time taken for tests:   0.149 seconds
@@ -99,9 +98,7 @@ The following config will cache URIs matching `^/blog.*`. Only pages match `rule
 
 ```javascript
 module.exports = {
-  rules: [
-    { regex: '^/blog.*', ttl: 300 },
-  ],
+  rules: [{ regex: '^/blog.*', ttl: 300 }],
 }
 ```
 
@@ -110,17 +107,17 @@ There are 2 parameters to control the behavior of the cache:
 - `ttl (time-to-live)`: After `ttl` seconds, the cache will be revalidated. And a cached page's `ttl` will be updated when a page is revalidated.
 - `tbd (time-before-deletion)`: When a page is not hit again in `ttl + tbd` seconds, it will be completely remove from cache.
 
-
 Above: only caching pages with URL start with `/blog`.
-
 
 ## Advanced Usages
 
 ### Deleting/Revalidating a Single URL
 
-By sending a GET with header `x-cache-status:update` to the URL, the cache will be revalidated. And if the page doesn't exists anymore, the cache will be deleted.
+By sending a GET with header `x-next-boost:update` to the URL, the cache will be revalidated. And if the page doesn't exists anymore, the cache will be deleted.
 
-    curl -H x-cache-status:update https://the_server_name.com/path_a
+```bash
+$ curl -H x-next-boost:update https://the_server_name.com/path_a
+```
 
 ### Batch Deleting/Revalidating
 
@@ -151,6 +148,7 @@ By default, each page with different URLs will be cached separately. But in some
 By default, the URL will be used as the key for cached pages. If you want to server pages from different domains or by different user-agent, you can use this function to custom the cache key.
 
 Notes:
+
 - If there's any exception thrown from this function, or the returned value is not a `string`, your server will crash.
 
 ```javascript
@@ -177,11 +175,9 @@ Alternatively you can provide a function instead of array inside your config.
 }
 ```
 
-Function should return valid `ttl` for the request. If the function returns `0` or `falsy` value
-the request will not be cached.
+Function should return valid `ttl` for the request. If the function returns `0` or `falsy` value the request will not be cached.
 
-The power that comes from this method is that you can decide if the request is cached or not
-more dynamically.
+The power that comes from this method is that you can decide if the request is cached or not more dynamically.
 
 For example you can automatically ignore all request from authenticated users based on the header:
 
@@ -219,8 +215,7 @@ You can also get more complex rules done more easily then through regex. For exa
 }
 ```
 
-While you would need to write complex regex rule or potentially more rules it is easy to
-do it through JS logic.
+While you would need to write complex regex rule or potentially more rules it is easy to do it through JS logic.
 
 In the end if you prefer writting regex but wish to leverage JS logic you can always regex match inside a rules handler.
 
@@ -231,7 +226,6 @@ If available, `.next-boost.js` at project root will be used. If you use next-boo
 tips: If you are using `next-boost` cli with Next.js, you may want to use the config file.
 
 And here's an example [`.next-boost.sample.js`](https://github.com/@next-boost/next-boost/blob/master/.next-boost.sample.js) in the repo.
-
 
 ```typescript
 interface HandlerConfig {
@@ -261,7 +255,6 @@ type CacheKeyBuilder = (req: IncomingMessage) => string
 ### Logging
 
 Logging is enabled by default. If you use `next-boost` programmatically, you can disable logs by passing the `quiet` boolean flag as an option to `CachedHandler`.
-
 
 ```javascript
 ...

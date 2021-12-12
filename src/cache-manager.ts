@@ -1,88 +1,67 @@
 import { ServerResponse } from 'http'
 import { PassThrough } from 'stream'
 
-import { CacheAdapter } from './handler'
+import { decodePayload } from './payload'
+import { Cache, State } from './types'
 import { sleep } from './utils'
 
 const MAX_WAIT = 10000 // 10 seconds
 const WAIT_INTERVAL = 10 // 10 ms
 
-type HasReturn = ReturnType<CacheAdapter['has']> extends Promise<infer T>
-  ? T
-  : never
-
-type ServeResult = {
-  status: HasReturn | 'force' | 'error'
-  stop: boolean
-}
-
-export async function hasLock(key: string, cache: CacheAdapter) {
+export async function hasLock(key: string, cache: Cache) {
   return (await cache.has('lock:' + key)) === 'hit'
 }
 
 // mutex lock to prevent same page rendered more than once
-export async function addLock(key: string, cache: CacheAdapter) {
+export async function addLock(key: string, cache: Cache) {
   await cache.set('lock:' + key, Buffer.from('lock'), MAX_WAIT / 1000) // in seconds
 }
 
-export async function delLock(key: string, cache: CacheAdapter) {
+export async function delLock(key: string, cache: Cache) {
   await cache.del('lock:' + key)
 }
 
-export async function serveCache(
-  cache: CacheAdapter,
-  key: string,
-  forced: boolean,
-  res: ServerResponse
-): Promise<ServeResult> {
-  const rv: ServeResult = { status: 'force', stop: false }
-  if (forced) return rv
+export async function serveCache(cache: Cache, key: string, forced: boolean): Promise<State> {
+  if (forced) return { status: 'force' }
 
-  rv.status = await cache.has('body:' + key)
-  // forced to skip cache or first-time miss
-  let lock = await hasLock(key, cache)
-  if (!lock && rv.status === 'miss') return rv
-
-  // non first-time miss, wait for the cache
-  if (rv.status === 'miss') await waitAndServe(key, cache, rv)
-
-  const payload = { body: null, headers: null }
-  if (!rv.stop) {
-    payload.body = await cache.get('body:' + key)
-    try {
-      const header = await cache.get('header:' + key)
-      payload.headers = JSON.parse(header?.toString())
-    } catch {
-      // bypass
+  try {
+    const status = await cache.has('payload:' + key)
+    if (status === 'hit') {
+      const payload = decodePayload(await cache.get('payload:' + key))
+      return { status: 'hit', payload }
+    } else if (status === 'miss') {
+      const lock = await hasLock(key, cache)
+      // non first-time miss (the cache is being created), wait for the cache
+      return !lock ? { status: 'miss' } : waitAndServe(key, cache)
+    } else {
+      // stale
+      const payload = decodePayload(await cache.get('payload:' + key))
+      return { status: 'stale', payload }
     }
+  } catch (e) {
+    console.error(`${key} cache error: ${e.message}`)
+    return { status: 'miss' }
   }
-  send(payload, res)
-
-  // no need to run update again
-  lock = await hasLock(key, cache)
-  if ((lock && rv.status === 'stale') || rv.status === 'hit') {
-    rv.stop = true
-  }
-
-  return rv
 }
 
-async function waitAndServe(key: string, cache: CacheAdapter, rv: ServeResult) {
+async function waitAndServe(key: string, cache: Cache): Promise<State> {
   while (await hasLock(key, cache)) {
     // lock will expire
     await sleep(WAIT_INTERVAL)
   }
-  rv.status = await cache.has('body:' + key)
+  const status = await cache.has('payload:' + key)
   // still no cache after waiting for MAX_WAIT
-  if (rv.status === 'miss') {
-    rv.stop = true
-    rv.status = 'error'
+  if (status === 'miss') {
+    return { status: 'timeout' }
+  } else {
+    const payload = decodePayload(await cache.get('payload:' + key))
+    return { status: 'fulfill', payload }
   }
 }
 
-function send(
+export function send(
   payload: { body: Buffer | null; headers: Record<string, any> | null },
-  res: ServerResponse
+  res: ServerResponse,
 ) {
   const { body, headers } = payload
   if (!body) {

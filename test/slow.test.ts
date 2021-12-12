@@ -1,10 +1,9 @@
 import http from 'http'
 import request from 'supertest'
+
 import CachedHandler from '../src/handler'
 
-type CHReturn = ReturnType<typeof CachedHandler> extends Promise<infer T>
-  ? T
-  : never
+type CHReturn = ReturnType<typeof CachedHandler> extends Promise<infer T> ? T : never
 
 describe('slow handler', () => {
   let cached: CHReturn
@@ -12,14 +11,9 @@ describe('slow handler', () => {
 
   beforeAll(async () => {
     const script = require.resolve('./mock')
-    cached = await CachedHandler(
-      { script },
-      { rules: [{ regex: '/slow-*', ttl: 0.5 }] }
-    )
-    await cached.cache.del('body:/slow-300')
-    await cached.cache.del('header:/slow-300')
-    await cached.cache.del('body:/slow-10100')
-    await cached.cache.del('header:/slow-10100')
+    cached = await CachedHandler({ script }, { rules: [{ regex: '/slow-*', ttl: 0.5 }] })
+    await cached.cache.del('payload:/slow-300')
+    await cached.cache.del('payload:/slow-10100')
     server = new http.Server(cached.handler)
   })
 
@@ -33,7 +27,7 @@ describe('slow handler', () => {
               console.log(i, 'ended')
               resolve(res.status)
             })
-        })
+        }),
     )
     Promise.all(tasks).then(rv => {
       expect(rv).toEqual([200, 200])
@@ -47,11 +41,11 @@ describe('slow handler', () => {
         new Promise<number>(resolve => {
           request(server)
             .get('/slow-300')
-            .end((err, res) => {
+            .end((_, res) => {
               console.log(i, 'ended')
               resolve(res.status)
             })
-        })
+        }),
     )
     Promise.all(tasks).then(rv => {
       expect(rv).toEqual([200, 200])
@@ -65,11 +59,11 @@ describe('slow handler', () => {
         new Promise<number>(resolve => {
           request(server)
             .get('/slow-10100')
-            .end((err, res) => {
+            .end((_, res) => {
               console.log(i, 'ended')
               resolve(res.status)
             })
-        })
+        }),
     )
     Promise.all(tasks).then(rv => {
       expect(rv).toEqual([200, 504])

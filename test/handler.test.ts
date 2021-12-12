@@ -1,10 +1,9 @@
 import http from 'http'
 import request from 'supertest'
+
 import CachedHandler from '../src/handler'
 
-type CHReturn = ReturnType<typeof CachedHandler> extends Promise<infer T>
-  ? T
-  : never
+type CHReturn = ReturnType<typeof CachedHandler> extends Promise<infer T> ? T : never
 
 describe('cached handler', () => {
   let cached: CHReturn
@@ -14,10 +13,9 @@ describe('cached handler', () => {
     const script = require.resolve('./mock')
     cached = await CachedHandler(
       { script },
-      { rules: [{ regex: '/hello.*', ttl: 0.5 }], quiet: true }
+      { rules: [{ regex: '/hello.*', ttl: 0.5 }], quiet: true },
     )
-    await cached.cache.del('body:/hello')
-    await cached.cache.del('header:/hello')
+    await cached.cache.del('payload:/hello')
     server = new http.Server(cached.handler)
   })
 
@@ -104,7 +102,7 @@ describe('cached handler', () => {
   it('force update /hello', done => {
     request(server)
       .get('/hello')
-      .set('x-cache-status', 'update')
+      .set('x-next-boost', 'update')
       .end((_, res) => {
         expect(res.text).toEqual('hello')
         done()
@@ -114,7 +112,7 @@ describe('cached handler', () => {
   it('force update /hello-empty', done => {
     request(server)
       .get('/hello-empty')
-      .set('x-cache-status', 'update')
+      .set('x-next-boost', 'update')
       .end((_, res) => {
         expect(res.status).toEqual(200)
         done()
@@ -141,7 +139,7 @@ describe('cached handler with different conf', () => {
         cacheKey: req => {
           return req.url + '_001'
         },
-      }
+      },
     )
     server = new http.Server(cached.handler)
   })
@@ -160,7 +158,7 @@ describe('cached handler with different conf', () => {
       .get('/hello')
       .end(async (_, res) => {
         expect(res.text).toEqual('hello')
-        expect(await cached.cache.has('body:/hello_001')).toEqual('hit')
+        expect(await cached.cache.has('payload:/hello_001')).toEqual('hit')
         done()
       })
   })
@@ -191,9 +189,9 @@ describe('cached handler with paramFilter conf', () => {
       {
         quiet: false,
         paramFilter: p => p !== 'p1',
-      }
+      },
     )
-    await cached.cache.del('body:/params?p2=2')
+    await cached.cache.del('payload:/params?p2=2')
     server = new http.Server(cached.handler)
   })
 
@@ -202,7 +200,7 @@ describe('cached handler with paramFilter conf', () => {
       .get('/params?p1=1&p2=2')
       .end(async (_, res) => {
         expect(res.text).toEqual('params')
-        expect(await cached.cache.has('body:/params?p2=2')).toEqual('hit')
+        expect(await cached.cache.has('payload:/params?p2=2')).toEqual('hit')
         done()
       })
   })
@@ -228,9 +226,9 @@ describe('cached handler with rules handler conf', () => {
           }
         },
         quiet: true,
-      }
+      },
     )
-    await cached.cache.del('body:/hello')
+    await cached.cache.del('payload:/hello')
     server = new http.Server(cached.handler)
   })
 
@@ -248,7 +246,7 @@ describe('cached handler with rules handler conf', () => {
       .get('/hello')
       .end(async (_, res) => {
         expect(res.text).toEqual('hello')
-        expect(await cached.cache.has('body:/hello')).toEqual('hit')
+        expect(await cached.cache.has('payload:/hello')).toEqual('hit')
         done()
       })
   })

@@ -1,21 +1,19 @@
-import { IncomingMessage, RequestListener } from 'http'
-import Cache from 'next-boost-hdc-adapter'
+import { IncomingMessage } from 'http'
 import { gzipSync } from 'zlib'
 
-import { addLock, delLock, serveCache } from './cache-manager'
+import { addLock, delLock, send, serveCache } from './cache-manager'
+import { encodePayload } from './payload'
 import Renderer, { InitArgs } from './renderer'
-import { filterUrl, isZipped, log, mergeConfig, ParamFilter, serve } from './utils'
+import { HandlerConfig, WrappedHandler } from './types'
+import { filterUrl, isZipped, log, mergeConfig, serve } from './utils'
 
-function matchRule(conf: HandlerConfig, req: IncomingMessage) {
+function matchRules(conf: HandlerConfig, req: IncomingMessage) {
   const err = ['GET', 'HEAD'].indexOf(req.method) === -1
   if (err) return { matched: false, ttl: -1 }
 
   if (typeof conf.rules === 'function') {
     const ttl = conf.rules(req)
-
-    if (ttl) {
-      return { matched: true, ttl }
-    }
+    if (ttl) return { matched: true, ttl }
   } else {
     for (const rule of conf.rules) {
       if (req.url && new RegExp(rule.regex).test(req.url)) {
@@ -26,85 +24,58 @@ function matchRule(conf: HandlerConfig, req: IncomingMessage) {
   return { matched: false, ttl: 0 }
 }
 
-function toBuffer(o: any) {
-  return Buffer.from(JSON.stringify(o))
-}
-
-interface URLCacheRule {
-  regex: string
-  ttl: number
-}
-
-export type CacheKeyBuilder = (req: IncomingMessage) => string
-
-export type CacheStatus = 'hit' | 'stale' | 'miss'
-
-export type CacheAdapter = {
-  set(key: string, value: Buffer, ttl?: number): Promise<void>
-  get(key: string, defaultValue?: Buffer): Promise<Buffer | undefined>
-  has(key: string): Promise<CacheStatus>
-  del(key: string): Promise<void>
-}
-
-export type URLCacheRuleResolver = (req: IncomingMessage) => number
-
-export interface HandlerConfig {
-  filename?: string // config file's path
-  quiet?: boolean
-  rules?: Array<URLCacheRule> | URLCacheRuleResolver
-  cacheAdapter?: CacheAdapter
-  paramFilter?: ParamFilter
-  cacheKey?: CacheKeyBuilder
-}
-
-type RendererType = ReturnType<typeof Renderer>
-
-type WrappedHandler = (
-  cache: CacheAdapter,
-  conf: HandlerConfig,
-  renderer: RendererType,
-  plainHandler: RequestListener
-) => RequestListener
-
-const wrap: WrappedHandler = (cache, conf, renderer, plainHandler) => {
+/**
+ * Wrap a http listener to serve cached response
+ *
+ * @param cache the cache
+ * @param conf conf of next-boost
+ * @param renderer the SSR renderer runs in worker thread
+ * @param next pass-through handler
+ *
+ * @returns a request listener to use in http server
+ */
+const wrap: WrappedHandler = (cache, conf, renderer, next) => {
   return async (req, res) => {
     req.url = filterUrl(req.url, conf.paramFilter)
     const key = conf.cacheKey ? conf.cacheKey(req) : req.url
-    const { matched, ttl } = matchRule(conf, req)
-    if (!matched) return plainHandler(req, res)
+    const { matched, ttl } = matchRules(conf, req)
+    if (!matched) return next(req, res)
 
     const start = process.hrtime()
-    const fc = req.headers['x-cache-status'] === 'update' // forced
+    const forced = req.headers['x-next-boost'] === 'update' // forced
 
-    const { status, stop } = await serveCache(cache, key, fc, res)
-    if (stop) return !conf.quiet && log(start, status, req.url)
-    // log the time took for staled
-    if (status === 'stale') !conf.quiet && log(start, status, req.url)
+    const state = await serveCache(cache, key, forced)
 
-    await addLock(key, cache)
-
-    const args = { path: req.url, headers: req.headers, method: req.method }
-    const rv = await renderer.render(args)
-
-    // rv.body is a Buffer in JSON format: { type: 'Buffer', data: [...] }
-    const body = Buffer.from(rv.body)
-    // stale means already served from cache with old ver, just update the cache
-    if (status !== 'stale') serve(res, rv)
-    // stale will print 2 lines, first 'stale', second 'update'
-    !conf.quiet && log(start, status === 'stale' ? 'update' : status, req.url)
-
-    if (rv.statusCode === 200 && body.length > 0) {
-      // save gzipped data
-      const buf = isZipped(rv.headers) ? body : gzipSync(body)
-      await cache.set('body:' + key, buf, ttl)
-      await cache.set('header:' + key, toBuffer(rv.headers), ttl)
-    } else if (status === 'force') {
-      // updating but empty result
-      await cache.del('body:' + key)
-      await cache.del('header:' + key)
+    if (state.status === 'stale' || state.status === 'hit' || state.status === 'fulfill') {
+      send(state.payload, res)
+      if (!conf.quiet) log(start, state.status, req.url) // record time for stale and hit
+      if (state.status !== 'stale') return // stop here
+    } else if (state.status === 'timeout') {
+      send({ body: null, headers: null }, res)
+      return // prevent adding pressure to server
     }
 
-    delLock(key, cache)
+    try {
+      await addLock(key, cache)
+
+      const args = { path: req.url, headers: req.headers, method: req.method }
+      const rv = await renderer.render(args)
+      // rv.body is a Buffer in JSON format: { type: 'Buffer', data: [...] }
+      const body = Buffer.from(rv.body)
+      // stale has been served
+      if (state.status !== 'stale') serve(res, rv)
+      // when in stale, there will 2 log output. The latter is the rendering time on server
+      if (!conf.quiet) log(start, state.status, req.url)
+      if (rv.statusCode === 200) {
+        // save gzipped data
+        const payload = { headers: rv.headers, body: isZipped(rv.headers) ? body : gzipSync(body) }
+        await cache.set('payload:' + key, encodePayload(payload), ttl)
+      }
+    } catch (e) {
+      console.error('Error saving payload to cache', e)
+    } finally {
+      delLock(key, cache)
+    }
   }
 }
 
@@ -115,7 +86,8 @@ export default async function CachedHandler(args: InitArgs, options?: HandlerCon
   const conf = mergeConfig(options)
 
   // the cache
-  const cache = conf.cacheAdapter || Cache.init()
+  if (!conf.cacheAdapter) conf.cacheAdapter = require('next-boost-hdc-adapter').default
+  const cache = await conf.cacheAdapter.init()
 
   const renderer = Renderer()
   await renderer.init(args)
@@ -125,9 +97,9 @@ export default async function CachedHandler(args: InitArgs, options?: HandlerCon
   return {
     handler: wrap(cache, conf, renderer, plain),
     cache,
-    close: () => {
-      Cache.shutdown()
+    close: async () => {
       renderer.kill()
+      await conf.cacheAdapter.shutdown()
     },
   }
 }
