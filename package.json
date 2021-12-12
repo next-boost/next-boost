@@ -22,9 +22,9 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/@next-boost/next-boost.git"
+    "url": "git@github.com:next-boost/next-boost.git"
   },
-  "homepage": "https://github.com/@next-boost/next-boost",
+  "homepage": "https://github.com/next-boost/next-boost",
   "license": "MIT",
   "dependencies": {
     "http-graceful-shutdown": "^3.1.5",
@@ -45,7 +45,8 @@
     "@typescript-eslint/parser": "^4.1.1",
     "eslint": "^7.9.0",
     "jest": "^27.0.1",
-    "next-boost-hdc-adapter": "^0.11.0",
+    "@next-boost/hybrid-disk-cache": "^0.1.0",
+    "@next-boost/redis-cache": "^0.1.0",
     "regenerator-runtime": "^0.13.9",
     "supertest": "^6.0.1",
     "ts-node": "^10.0.0",

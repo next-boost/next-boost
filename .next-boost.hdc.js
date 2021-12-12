@@ -1,5 +1,5 @@
 // An example with custom cache adapter
-const HDCCache = require('next-boost-hdc-adapter').default
+const Adapter = require('@next-boost/hybrid-disk-cache').Adapter
 
 module.exports = {
   rules: [
@@ -15,7 +15,7 @@ module.exports = {
   paramFilter: p => {
     p === 'fbclid' || p.startsWith('utm_') ? false : true
   },
-  cacheAdapter: HDCCache.init({
+  cacheAdapter: new Adapter({
     path: '/tmp/hdc',
     ttl: 60,
     tbd: 3600,

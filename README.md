@@ -10,6 +10,8 @@ If you are familiar with `Next.js`, `next-boost` can be considered as an impleme
 
 ```bash
 $ yarn add @next-boost/next-boost
+$ yarn add @next-boost/redis-cache # using load-balancer and cluster
+$ yarn add @next-boost/hybrid-disk-cache # simple site with disk cache
 ```
 
 ## Features
@@ -20,11 +22,15 @@ $ yarn add @next-boost/next-boost
 - Simultaneous requests with the first one rendered and the rest served from the cache
 - Small footprint with [less than 200 LOC](https://coveralls.io/github/@next-boost/next-boost?branch=master)
 - Used in production with 300K pages cached
-- As a [database-disk-hybrid cache](https://github.com/@next-boost/hybrid-disk-cache)
-  - no memory capacity limit, and works great on cheap VPSs
-  - no need to add a cache layer server like varnish, nginx Cache and etc.
-  - great performance, and may even have [better performace than pure file system](https://www.sqlite.org/fasterthanfs.html) cache
-  - portability on major platforms
+- 2 official cache adapters
+  - [@next-boost/redis-cache](https://github.com/@next-boost/redis-cache)
+    - For using within a cluster
+    - Check `.next-boost.redis.js` for sample config
+  - [@next-boost/hybrid-disk-cache](https://github.com/@next-boost/hybrid-disk-cache)
+    - no memory capacity limit, and works great on cheap VPSs
+    - great performance, and may even have [better performace than pure file system](https://www.sqlite.org/fasterthanfs.html) cache
+    - portability on major platforms
+    - Check `.next-boost.hdc.js` for sample config
 
 ## Use `next-boost` cli with Next.js
 
