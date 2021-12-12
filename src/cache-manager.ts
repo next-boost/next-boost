@@ -5,7 +5,7 @@ import { CacheAdapter } from './handler'
 import { sleep } from './utils'
 
 const MAX_WAIT = 10000 // 10 seconds
-const INTERVAL = 10 // 10 ms
+const WAIT_INTERVAL = 10 // 10 ms
 
 type HasReturn = ReturnType<CacheAdapter['has']> extends Promise<infer T>
   ? T
@@ -16,9 +16,21 @@ type ServeResult = {
   stop: boolean
 }
 
+export async function hasLock(key: string, cache: CacheAdapter) {
+  return (await cache.has('lock:' + key)) === 'hit'
+}
+
+// mutex lock to prevent same page rendered more than once
+export async function addLock(key: string, cache: CacheAdapter) {
+  await cache.set('lock:' + key, Buffer.from('lock'), MAX_WAIT / 1000) // in seconds
+}
+
+export async function delLock(key: string, cache: CacheAdapter) {
+  await cache.del('lock:' + key)
+}
+
 export async function serveCache(
   cache: CacheAdapter,
-  lock: Set<string>,
   key: string,
   forced: boolean,
   res: ServerResponse
@@ -28,18 +40,18 @@ export async function serveCache(
 
   rv.status = await cache.has('body:' + key)
   // forced to skip cache or first-time miss
-  if (!lock.has(key) && rv.status === 'miss') return rv
+  let lock = await hasLock(key, cache)
+  if (!lock && rv.status === 'miss') return rv
 
   // non first-time miss, wait for the cache
-  if (rv.status === 'miss') await waitAndServe(() => lock.has(key), rv)
+  if (rv.status === 'miss') await waitAndServe(key, cache, rv)
 
   const payload = { body: null, headers: null }
   if (!rv.stop) {
     payload.body = await cache.get('body:' + key)
     try {
-      payload.headers = JSON.parse(
-        (await cache.get('header:' + key))?.toString()
-      )
+      const header = await cache.get('header:' + key)
+      payload.headers = JSON.parse(header?.toString())
     } catch {
       // bypass
     }
@@ -47,26 +59,25 @@ export async function serveCache(
   send(payload, res)
 
   // no need to run update again
-  if ((lock.has(key) && rv.status === 'stale') || rv.status === 'hit') {
+  lock = await hasLock(key, cache)
+  if ((lock && rv.status === 'stale') || rv.status === 'hit') {
     rv.stop = true
   }
 
   return rv
 }
 
-async function waitAndServe(hasLock: () => boolean, rv: ServeResult) {
-  const start = new Date().getTime()
-  while (hasLock()) {
-    await sleep(INTERVAL)
-    const now = new Date().getTime()
-    // to protect the server from heavy payload
-    if (now - start > MAX_WAIT) {
-      rv.stop = true
-      rv.status = 'error'
-      return
-    }
+async function waitAndServe(key: string, cache: CacheAdapter, rv: ServeResult) {
+  while (await hasLock(key, cache)) {
+    // lock will expire
+    await sleep(WAIT_INTERVAL)
   }
-  rv.status = 'hit'
+  rv.status = await cache.has('body:' + key)
+  // still no cache after waiting for MAX_WAIT
+  if (rv.status === 'miss') {
+    rv.stop = true
+    rv.status = 'error'
+  }
 }
 
 function send(

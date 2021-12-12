@@ -1,16 +1,10 @@
 import { IncomingMessage, RequestListener } from 'http'
 import Cache from 'next-boost-hdc-adapter'
 import { gzipSync } from 'zlib'
-import { serveCache } from './cache-manager'
+
+import { addLock, delLock, serveCache } from './cache-manager'
 import Renderer, { InitArgs } from './renderer'
-import {
-  filterUrl,
-  isZipped,
-  log,
-  mergeConfig,
-  ParamFilter,
-  serve,
-} from './utils'
+import { filterUrl, isZipped, log, mergeConfig, ParamFilter, serve } from './utils'
 
 function matchRule(conf: HandlerConfig, req: IncomingMessage) {
   const err = ['GET', 'HEAD'].indexOf(req.method) === -1
@@ -72,9 +66,6 @@ type WrappedHandler = (
   plainHandler: RequestListener
 ) => RequestListener
 
-// mutex lock to prevent same page rendered more than once
-const SYNC_LOCK = new Set<string>()
-
 const wrap: WrappedHandler = (cache, conf, renderer, plainHandler) => {
   return async (req, res) => {
     req.url = filterUrl(req.url, conf.paramFilter)
@@ -85,12 +76,12 @@ const wrap: WrappedHandler = (cache, conf, renderer, plainHandler) => {
     const start = process.hrtime()
     const fc = req.headers['x-cache-status'] === 'update' // forced
 
-    const { status, stop } = await serveCache(cache, SYNC_LOCK, key, fc, res)
+    const { status, stop } = await serveCache(cache, key, fc, res)
     if (stop) return !conf.quiet && log(start, status, req.url)
     // log the time took for staled
     if (status === 'stale') !conf.quiet && log(start, status, req.url)
 
-    SYNC_LOCK.add(key)
+    await addLock(key, cache)
 
     const args = { path: req.url, headers: req.headers, method: req.method }
     const rv = await renderer.render(args)
@@ -113,14 +104,11 @@ const wrap: WrappedHandler = (cache, conf, renderer, plainHandler) => {
       await cache.del('header:' + key)
     }
 
-    SYNC_LOCK.delete(key)
+    delLock(key, cache)
   }
 }
 
-export default async function CachedHandler(
-  args: InitArgs,
-  options?: HandlerConfig
-) {
+export default async function CachedHandler(args: InitArgs, options?: HandlerConfig) {
   console.log('> Preparing cached handler')
 
   // merge config
