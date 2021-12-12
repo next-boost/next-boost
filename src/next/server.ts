@@ -26,10 +26,8 @@ const serve = async (argv: Argv) => {
 
   gracefulShutdown(server, {
     timeout: grace,
-    preShutdown: async () => {
-      console.log('> Shutting down...')
-      cached.close()
-    },
+    preShutdown: async () => console.log('> Shutting down...'),
+    onShutdown: async () => cached.close(),
     finally: () => console.log('> Shutdown complete.'),
   })
 }
