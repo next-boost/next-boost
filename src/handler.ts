@@ -86,7 +86,10 @@ export default async function CachedHandler(args: InitArgs, options?: HandlerCon
   const conf = mergeConfig(options)
 
   // the cache
-  if (!conf.cacheAdapter) conf.cacheAdapter = require('next-boost-hdc-adapter').default
+  if (!conf.cacheAdapter) {
+    const { Adapter } = require('@next-boost/hybrid-disk-cache')
+    conf.cacheAdapter = new Adapter()
+  }
   const cache = await conf.cacheAdapter.init()
 
   const renderer = Renderer()

@@ -1,17 +1,20 @@
 import http from 'http'
-import Cache from 'next-boost-hdc-adapter'
 import request from 'supertest'
 import { gzipSync } from 'zlib'
+
+import Cache, { Adapter } from '@next-boost/hybrid-disk-cache'
 
 import { send, serveCache } from '../src/cache-manager'
 import { encodePayload } from '../src/payload'
 
 describe('serve cache', () => {
-  const cache = Cache.init()
+  const adapter = new Adapter()
+  let cache: Cache
   let url: string
   let server: http.Server
 
   beforeAll(async () => {
+    cache = await adapter.init()
     url = '/p1'
     const headers = { 'header-x': 'value-x' }
     const data = encodePayload({ headers, body: gzipSync(Buffer.from('AAA')) })
@@ -57,16 +60,18 @@ describe('serve cache', () => {
   })
 
   afterAll(() => {
-    Cache.shutdown()
+    adapter.shutdown()
   })
 })
 
 describe('serve bad cache', () => {
-  const cache = Cache.init()
+  const adapter = new Adapter()
+  let cache: Cache
   let url: string
   let server: http.Server
 
   beforeAll(async () => {
+    cache = await adapter.init()
     url = '/p1'
     await cache.set('payload:' + url, Buffer.from('abcdefg'))
 
@@ -90,6 +95,6 @@ describe('serve bad cache', () => {
   })
 
   afterAll(() => {
-    Cache.shutdown()
+    adapter.shutdown()
   })
 })
