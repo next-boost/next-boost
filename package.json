@@ -7,8 +7,8 @@
     "next-boost": "dist/next/server.js"
   },
   "scripts": {
-    "build": "tsc",
-    "prepublishOnly": "rm -rf dist && npm run build && npm run test",
+    "build": "rm -rf dist && swc src --out-dir dist",
+    "prepublishOnly": "yarn tsc && yarn test",
     "lint": "eslint src/*.ts test/*.ts",
     "test": "jest"
   },

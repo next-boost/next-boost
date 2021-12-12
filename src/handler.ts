@@ -1,7 +1,7 @@
 import { IncomingMessage } from 'http'
 import { gzipSync } from 'zlib'
 
-import { addLock, delLock, send, serveCache } from './cache-manager'
+import { lock, send, serveCache, unlock } from './cache-manager'
 import { encodePayload } from './payload'
 import Renderer, { InitArgs } from './renderer'
 import { HandlerConfig, WrappedHandler } from './types'
@@ -56,7 +56,7 @@ const wrap: WrappedHandler = (cache, conf, renderer, next) => {
     }
 
     try {
-      await addLock(key, cache)
+      await lock(key, cache)
 
       const args = { path: req.url, headers: req.headers, method: req.method }
       const rv = await renderer.render(args)
@@ -74,7 +74,7 @@ const wrap: WrappedHandler = (cache, conf, renderer, next) => {
     } catch (e) {
       console.error('Error saving payload to cache', e)
     } finally {
-      delLock(key, cache)
+      unlock(key, cache)
     }
   }
 }

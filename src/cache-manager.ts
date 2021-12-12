@@ -13,11 +13,11 @@ export async function hasLock(key: string, cache: Cache) {
 }
 
 // mutex lock to prevent same page rendered more than once
-export async function addLock(key: string, cache: Cache) {
+export async function lock(key: string, cache: Cache) {
   await cache.set('lock:' + key, Buffer.from('lock'), MAX_WAIT / 1000) // in seconds
 }
 
-export async function delLock(key: string, cache: Cache) {
+export async function unlock(key: string, cache: Cache) {
   await cache.del('lock:' + key)
 }
 
