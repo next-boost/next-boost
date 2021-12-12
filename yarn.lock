@@ -547,6 +547,21 @@
   resolved "https://registry.yarnpkg.com/@napi-rs/triples/-/triples-1.1.0.tgz#88c35b72e79a20b79bb4c9b3e2817241a1c9f4f9"
   integrity sha512-XQr74QaLeMiqhStEhLn1im9EOMnkypp7MZOwQhGzqp2Weu5eQJbpPxWxixxlYRKWPOmJjsk6qYfYH9kq43yc2w==
 
+"@next-boost/hybrid-disk-cache@^0.3.0":
+  version "0.3.0"
+  resolved "https://registry.yarnpkg.com/@next-boost/hybrid-disk-cache/-/hybrid-disk-cache-0.3.0.tgz#39830e733a118440545d855bc4daef5096bda9fc"
+  integrity sha512-vswIzvNJXvAR8IYH0T9O32qkfJ4CbidJblsEtxthoeZUJwyxNtvNzLun7AOv4q67TToL6yvc4nJcUStB8e7A8w==
+  dependencies:
+    better-sqlite3 "^7.1.1"
+    fs-extra "^10.0.0"
+
+"@next-boost/redis-cache@^0.2.0":
+  version "0.2.0"
+  resolved "https://registry.yarnpkg.com/@next-boost/redis-cache/-/redis-cache-0.2.0.tgz#22d7037e091cdc54e5239ddadf3da2d1a6571dee"
+  integrity sha512-hNjPup7w5CLy6kMoAeXRolYbkOEzVEadW5K/UNIVm6UGhC73sPhBZbEckFCsrNJ+ScTD1/ifIOaybr2oZlNwAw==
+  dependencies:
+    ioredis "^4.28.2"
+
 "@node-rs/helper@^1.0.0":
   version "1.2.1"
   resolved "https://registry.yarnpkg.com/@node-rs/helper/-/helper-1.2.1.tgz#e079b05f21ff4329d82c4e1f71c0290e4ecdc70c"
@@ -1060,11 +1075,6 @@ asynckit@^0.4.0:
   resolved "https://registry.yarnpkg.com/asynckit/-/asynckit-0.4.0.tgz#c79ed97f7f34cb8f2ba1bc9790bcc366474b4b79"
   integrity sha1-x57Zf380y48robyXkLzDZkdLS3k=
 
-at-least-node@^1.0.0:
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/at-least-node/-/at-least-node-1.0.0.tgz#602cd4b46e844ad4effc92a8011a3c46e0238dc2"
-  integrity sha512-+q/t7Ekv1EDY2l6Gda6LLiX14rU9TV20Wa3ofeQmwPFZbOMo9DXrLbOjFaaclkXKWidIaopwAObQDqwWtGUjqg==
-
 babel-jest@^27.4.4:
   version "27.4.4"
   resolved "https://registry.yarnpkg.com/babel-jest/-/babel-jest-27.4.4.tgz#a012441f8a155df909839543a09510ab3477aa11"
@@ -1291,6 +1301,11 @@ cliui@^7.0.2:
     strip-ansi "^6.0.0"
     wrap-ansi "^7.0.0"
 
+cluster-key-slot@^1.1.0:
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/cluster-key-slot/-/cluster-key-slot-1.1.0.tgz#30474b2a981fb12172695833052bc0d01336d10d"
+  integrity sha512-2Nii8p3RwAPiFwsnZvukotvow2rIHM+yQ6ZcBXGHdniadkYGZYiGmkHJIbZPIV9nfv7m/U1IPMVVcAhoWFeklw==
+
 co@^4.6.0:
   version "4.6.0"
   resolved "https://registry.yarnpkg.com/co/-/co-4.6.0.tgz#6ea6bdf3d853ae54ccb8e47bfa0bf3f9031fb184"
@@ -1462,6 +1477,11 @@ delegates@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/delegates/-/delegates-1.0.0.tgz#84c6e159b81904fdca59a0ef44cd870d31250f9a"
   integrity sha1-hMbhWbgZBP3KWaDvRM2HDTElD5o=
+
+denque@^1.1.0:
+  version "1.5.1"
+  resolved "https://registry.yarnpkg.com/denque/-/denque-1.5.1.tgz#07f670e29c9a78f8faecb2566a1e2c11929c5cbf"
+  integrity sha512-XwE+iZ4D6ZUB7mfYRMb5wByE8L74HCn30FBN7sWnXksWc1LO1bPDl67pBR9o/kC4z/xSNAwkMYcGgqDV3BE3Hw==
 
 detect-libc@^1.0.3:
   version "1.0.3"
@@ -1827,12 +1847,11 @@ fs-constants@^1.0.0:
   resolved "https://registry.yarnpkg.com/fs-constants/-/fs-constants-1.0.0.tgz#6be0de9be998ce16af8afc24497b9ee9b7ccd9ad"
   integrity sha512-y6OAwoSIf7FyjMIv94u+b5rdheZEjzR63GTyZJm5qh4Bi+2YgwLCcI/fPFZkL5PSixOt6ZNKm+w+Hfp/Bciwow==
 
-fs-extra@^9.0.1:
-  version "9.1.0"
-  resolved "https://registry.yarnpkg.com/fs-extra/-/fs-extra-9.1.0.tgz#5954460c764a8da2094ba3554bf839e6b9a7c86d"
-  integrity sha512-hcg3ZmepS30/7BSFqRvoo3DOMQu7IjqxO5nCDt+zM9XWjb33Wg7ziNT+Qvqbuc3+gWpzO02JubVyk2G4Zvo1OQ==
+fs-extra@^10.0.0:
+  version "10.0.0"
+  resolved "https://registry.yarnpkg.com/fs-extra/-/fs-extra-10.0.0.tgz#9ff61b655dde53fb34a82df84bb214ce802e17c1"
+  integrity sha512-C5owb14u9eJwizKGdchcDUQeFtlSHHthBk8pbX9Vc1PFZrLombudjDnNns88aYslCyF6IY5SUw3Roz6xShcEIQ==
   dependencies:
-    at-least-node "^1.0.0"
     graceful-fs "^4.2.0"
     jsonfile "^6.0.1"
     universalify "^2.0.0"
@@ -2028,14 +2047,6 @@ human-signals@^2.1.0:
   resolved "https://registry.yarnpkg.com/human-signals/-/human-signals-2.1.0.tgz#dc91fcba42e4d06e4abaed33b3e7a3c02f514ea0"
   integrity sha512-B4FFZ6q/T2jhhksgkbEW3HBvWIfDW85snkQgawt07S7J5QXTk6BkNV+0yAeZrM5QpMAdYlocGoljn0sJ/WQkFw==
 
-hybrid-disk-cache@^0.2.0:
-  version "0.2.0"
-  resolved "https://registry.yarnpkg.com/hybrid-disk-cache/-/hybrid-disk-cache-0.2.0.tgz#4046c504ad277f52757b6fc133d74495d6d28ebb"
-  integrity sha512-KzrRMd0OEXB8DI+NNyZ1dc9uiSDvtUmB+g7qUnaZydN/n1/tmmJw5Ju9tmU9tJtU3h6vQuH/oPz2nDY4HBPN7A==
-  dependencies:
-    better-sqlite3 "^7.1.1"
-    fs-extra "^9.0.1"
-
 iconv-lite@0.4.24:
   version "0.4.24"
   resolved "https://registry.yarnpkg.com/iconv-lite/-/iconv-lite-0.4.24.tgz#2022b4b25fbddc21d2f524974a474aafe733908b"
@@ -2096,6 +2107,23 @@ ini@~1.3.0:
   version "1.3.8"
   resolved "https://registry.yarnpkg.com/ini/-/ini-1.3.8.tgz#a29da425b48806f34767a4efce397269af28432c"
   integrity sha512-JV/yugV2uzW5iMRSiZAyDtQd+nxtUnjeLt0acNdw98kKLrvuRVyB80tsREOE7yvGVgalhZ6RNXCmEHkUKBKxew==
+
+ioredis@^4.28.2:
+  version "4.28.2"
+  resolved "https://registry.yarnpkg.com/ioredis/-/ioredis-4.28.2.tgz#493ccd5d869fd0ec86c96498192718171f6c9203"
+  integrity sha512-kQ+Iv7+c6HsDdPP2XUHaMv8DhnSeAeKEwMbaoqsXYbO+03dItXt7+5jGQDRyjdRUV2rFJbzg7P4Qt1iX2tqkOg==
+  dependencies:
+    cluster-key-slot "^1.1.0"
+    debug "^4.3.1"
+    denque "^1.1.0"
+    lodash.defaults "^4.2.0"
+    lodash.flatten "^4.4.0"
+    lodash.isarguments "^3.1.0"
+    p-map "^2.1.0"
+    redis-commands "1.7.0"
+    redis-errors "^1.2.0"
+    redis-parser "^3.0.0"
+    standard-as-callback "^2.1.0"
 
 is-core-module@^2.2.0:
   version "2.8.0"
@@ -2741,6 +2769,21 @@ locate-path@^5.0.0:
   dependencies:
     p-locate "^4.1.0"
 
+lodash.defaults@^4.2.0:
+  version "4.2.0"
+  resolved "https://registry.yarnpkg.com/lodash.defaults/-/lodash.defaults-4.2.0.tgz#d09178716ffea4dde9e5fb7b37f6f0802274580c"
+  integrity sha1-0JF4cW/+pN3p5ft7N/bwgCJ0WAw=
+
+lodash.flatten@^4.4.0:
+  version "4.4.0"
+  resolved "https://registry.yarnpkg.com/lodash.flatten/-/lodash.flatten-4.4.0.tgz#f31c22225a9632d2bbf8e4addbef240aa765a61f"
+  integrity sha1-8xwiIlqWMtK7+OSt2+8kCqdlph8=
+
+lodash.isarguments@^3.1.0:
+  version "3.1.0"
+  resolved "https://registry.yarnpkg.com/lodash.isarguments/-/lodash.isarguments-3.1.0.tgz#2f573d85c6a24289ff00663b491c1d338ff3458a"
+  integrity sha1-L1c9hcaiQon/AGY7SRwdM4/zRYo=
+
 lodash.merge@^4.6.2:
   version "4.6.2"
   resolved "https://registry.yarnpkg.com/lodash.merge/-/lodash.merge-4.6.2.tgz#558aa53b43b661e1925a0afdfa36a9a1085fe57a"
@@ -2891,13 +2934,6 @@ natural-compare@^1.4.0:
   resolved "https://registry.yarnpkg.com/natural-compare/-/natural-compare-1.4.0.tgz#4abebfeed7541f2c27acfb29bdbbd15c8d5ba4f7"
   integrity sha1-Sr6/7tdUHywnrPspvbvRXI1bpPc=
 
-next-boost-hdc-adapter@^0.11.0:
-  version "0.11.0"
-  resolved "https://registry.yarnpkg.com/next-boost-hdc-adapter/-/next-boost-hdc-adapter-0.11.0.tgz#b8c69118a1cd09bfd97764ba2a651f9ceadde12e"
-  integrity sha512-Cu0vFvNz3lQXTbYBpC9Ifg3iBAxZN8cWaTk14G5v2sX4APCjlW5utgQyksm/wpnfiZziSuDMnSVcJIU5Ap6LhQ==
-  dependencies:
-    hybrid-disk-cache "^0.2.0"
-
 node-abi@^3.3.0:
   version "3.5.0"
   resolved "https://registry.yarnpkg.com/node-abi/-/node-abi-3.5.0.tgz#26e8b7b251c3260a5ac5ba5aef3b4345a0229248"
@@ -3008,6 +3044,11 @@ p-locate@^4.1.0:
   integrity sha512-R79ZZ/0wAxKGu3oYMlz8jy/kbhsNrS7SKZ7PxEHBgJ5+F2mtFW2fK2cOtBh1cHYkQsbzFV7I+EoRKe6Yt0oK7A==
   dependencies:
     p-limit "^2.2.0"
+
+p-map@^2.1.0:
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/p-map/-/p-map-2.1.0.tgz#310928feef9c9ecc65b68b17693018a665cea175"
+  integrity sha512-y3b8Kpd8OAN444hxfBbFfj1FY/RjtTd8tzYwhUqNYXx0fXx2iX4maP4Qr6qhIKbQXI02wTLAda4fYUbDagTUFw==
 
 p-try@^2.0.0:
   version "2.2.0"
@@ -3196,6 +3237,23 @@ readable-stream@^3.1.1, readable-stream@^3.4.0, readable-stream@^3.6.0:
     inherits "^2.0.3"
     string_decoder "^1.1.1"
     util-deprecate "^1.0.1"
+
+redis-commands@1.7.0:
+  version "1.7.0"
+  resolved "https://registry.yarnpkg.com/redis-commands/-/redis-commands-1.7.0.tgz#15a6fea2d58281e27b1cd1acfb4b293e278c3a89"
+  integrity sha512-nJWqw3bTFy21hX/CPKHth6sfhZbdiHP6bTawSgQBlKOVRG7EZkfHbbHwQJnrE4vsQf0CMNE+3gJ4Fmm16vdVlQ==
+
+redis-errors@^1.0.0, redis-errors@^1.2.0:
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/redis-errors/-/redis-errors-1.2.0.tgz#eb62d2adb15e4eaf4610c04afe1529384250abad"
+  integrity sha1-62LSrbFeTq9GEMBK/hUpOEJQq60=
+
+redis-parser@^3.0.0:
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/redis-parser/-/redis-parser-3.0.0.tgz#b66d828cdcafe6b4b8a428a7def4c6bcac31c8b4"
+  integrity sha1-tm2CjNyv5rS4pCin3vTGvKwxyLQ=
+  dependencies:
+    redis-errors "^1.0.0"
 
 regenerator-runtime@^0.13.9:
   version "0.13.9"
@@ -3398,6 +3456,11 @@ stack-utils@^2.0.3:
   integrity sha512-xrQcmYhOsn/1kX+Vraq+7j4oE2j/6BFscZ0etmYg81xuM8Gq0022Pxb8+IqgOFUIaxHs0KaSb7T1+OegiNrNFA==
   dependencies:
     escape-string-regexp "^2.0.0"
+
+standard-as-callback@^2.1.0:
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/standard-as-callback/-/standard-as-callback-2.1.0.tgz#8953fc05359868a77b5b9739a665c5977bb7df45"
+  integrity sha512-qoRRSyROncaz1z0mvYqIE4lCd9p2R90i6GxW3uZv5ucSu8tU7B5HXUP1gG8pVZsYNVaXjk8ClXHPttLyxAL48A==
 
 string-length@^4.0.1:
   version "4.0.2"
