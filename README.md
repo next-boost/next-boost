@@ -36,7 +36,7 @@ $ yarn add @next-boost/hybrid-disk-cache # simple site with disk cache
 
 After install the package, just change the start script from `next start` to `next-boost`. All `next start`'s command line arguments, like `-p` for specifing the port, are compatible.
 
-```json
+```javascripts
  "scripts": {
     ...
     "start": "next-boost", // previously `next start`
