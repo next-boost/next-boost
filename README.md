@@ -196,7 +196,7 @@ For example you can automatically ignore all request from authenticated users ba
           return false
       }
 
-      return 1000 // cache all other requests for 1 second
+      return 10 // cache all other requests for 10 seconds
   }
 }
 ```
