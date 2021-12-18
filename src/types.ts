@@ -30,6 +30,7 @@ export interface HandlerConfig {
   cacheAdapter?: CacheAdapter
   paramFilter?: ParamFilter
   cacheKey?: CacheKeyBuilder
+  exporter?: boolean
 }
 
 export interface URLCacheRule {

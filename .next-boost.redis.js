@@ -1,6 +1,7 @@
 // An example with custom cache adapter
 const Adapter = require('@next-boost/redis-cache').Adapter
 
+/** @type {import('@next-boost/next-boost/dist/types').HandlerConfig} */
 module.exports = {
   rules: [],
   cacheAdapter: new Adapter({

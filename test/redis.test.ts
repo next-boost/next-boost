@@ -25,6 +25,7 @@ describe('cached handler', () => {
           ttl: 10,
           tbd: 20,
         }),
+        exporter: true,
       },
     )
     await cached.cache.del('payload:/hello')

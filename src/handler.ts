@@ -39,7 +39,7 @@ const wrap: WrappedHandler = (cache, conf, renderer, next) => {
   return async (req, res) => {
     // check if API for stats available
     const stats = cache.inc && cache.count
-    if (stats && isReqForStats(req)) return serveStats(cache, res)
+    if (conf.exporter && stats && isReqForStats(req)) return serveStats(cache, res)
 
     req.url = filterUrl(req.url ?? '', conf.paramFilter)
     const key = conf.cacheKey ? conf.cacheKey(req) : req.url
