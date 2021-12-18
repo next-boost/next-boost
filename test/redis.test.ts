@@ -138,7 +138,7 @@ describe('cached handler', () => {
       .get('/__nextboost_exporter')
       .end((_, res) => {
         expect(res.status).toEqual(200)
-        expect(res.text).toMatch(/next_boost_requests_total{status='hit'} 2/)
+        expect(res.text).toMatch(/next_boost_requests_total{status='hit'}/)
         done()
       })
   })
