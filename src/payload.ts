@@ -26,7 +26,8 @@ export function encodePayload({ headers, body }: PagePayload): Buffer {
  * @param payload The binary payload.
  * @returns The page payload.
  */
-export function decodePayload(payload: Buffer): PagePayload {
+export function decodePayload(payload: Buffer | undefined): PagePayload {
+  if (!payload) return { headers: {}, body: Buffer.alloc(0) }
   const magic = payload.slice(0, MAGIC.length)
   if (MAGIC.compare(magic) !== 0) throw new Error('Invalid payload')
   const headerLength = payload.readUInt32BE(MAGIC.length)

@@ -4,18 +4,19 @@ import { gzipSync } from 'zlib'
 import { lock, send, serveCache, unlock } from './cache-manager'
 import { encodePayload } from './payload'
 import Renderer, { InitArgs } from './renderer'
-import { HandlerConfig, WrappedHandler } from './types'
+import { isReqForStats, serveStats } from './stats'
+import { CacheAdapter, HandlerConfig, WrappedHandler } from './types'
 import { filterUrl, isZipped, log, mergeConfig, serve } from './utils'
 
 function matchRules(conf: HandlerConfig, req: IncomingMessage) {
-  const err = ['GET', 'HEAD'].indexOf(req.method) === -1
+  const err = ['GET', 'HEAD'].indexOf(req.method ?? '') === -1
   if (err) return { matched: false, ttl: -1 }
 
   if (typeof conf.rules === 'function') {
     const ttl = conf.rules(req)
     if (ttl) return { matched: true, ttl }
   } else {
-    for (const rule of conf.rules) {
+    for (const rule of conf.rules ?? []) {
       if (req.url && new RegExp(rule.regex).test(req.url)) {
         return { matched: true, ttl: rule.ttl }
       }
@@ -36,15 +37,23 @@ function matchRules(conf: HandlerConfig, req: IncomingMessage) {
  */
 const wrap: WrappedHandler = (cache, conf, renderer, next) => {
   return async (req, res) => {
-    req.url = filterUrl(req.url, conf.paramFilter)
+    // check if API for stats available
+    const stats = cache.inc && cache.count
+    if (stats && isReqForStats(req)) return serveStats(cache, res)
+
+    req.url = filterUrl(req.url ?? '', conf.paramFilter)
     const key = conf.cacheKey ? conf.cacheKey(req) : req.url
     const { matched, ttl } = matchRules(conf, req)
-    if (!matched) return next(req, res)
+    if (!matched) {
+      if (cache.inc) await cache.inc('stats:bypass')
+      return next(req, res)
+    }
 
     const start = process.hrtime()
     const forced = req.headers['x-next-boost'] === 'update' // forced
 
     const state = await serveCache(cache, key, forced)
+    if (cache.inc) await cache.inc('stats:' + state.status)
 
     if (state.status === 'stale' || state.status === 'hit' || state.status === 'fulfill') {
       send(state.payload, res)
@@ -88,9 +97,10 @@ export default async function CachedHandler(args: InitArgs, options?: HandlerCon
   // the cache
   if (!conf.cacheAdapter) {
     const { Adapter } = require('@next-boost/hybrid-disk-cache')
-    conf.cacheAdapter = new Adapter()
+    conf.cacheAdapter = new Adapter() as CacheAdapter
   }
-  const cache = await conf.cacheAdapter.init()
+  const adapter = conf.cacheAdapter
+  const cache = await adapter.init()
 
   const renderer = Renderer()
   await renderer.init(args)
@@ -102,7 +112,7 @@ export default async function CachedHandler(args: InitArgs, options?: HandlerCon
     cache,
     close: async () => {
       renderer.kill()
-      await conf.cacheAdapter.shutdown()
+      await adapter.shutdown()
     },
   }
 }

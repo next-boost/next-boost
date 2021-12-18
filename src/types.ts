@@ -12,6 +12,8 @@ export type Cache = {
   get(key: string, defaultValue?: Buffer): Promise<Buffer | undefined>
   has(key: string): Promise<CacheStatus>
   del(key: string): Promise<void>
+  inc?(label: string): Promise<void>
+  count?(labels: Array<string>): Promise<number[]>
 }
 
 export type CacheAdapter = {
@@ -62,4 +64,7 @@ export type State =
     }
   | {
       status: 'force'
+    }
+  | {
+      status: 'bypass'
     }

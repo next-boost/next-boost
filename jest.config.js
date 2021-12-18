@@ -9,4 +9,5 @@ module.exports = {
     'sample.js',
     'src/renderer.ts',
   ],
+  setupFiles: ['dotenv/config'],
 }

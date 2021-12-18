@@ -265,3 +265,19 @@ describe('cached handler with rules handler conf', () => {
     cached.close()
   })
 })
+
+describe('no rules config', () => {
+  let cached: CHReturn
+  let server: http.Server
+
+  it('create server with no rules', async () => {
+    const script = require.resolve('./mock')
+    cached = await CachedHandler({ script })
+    server = new http.Server(cached.handler)
+  })
+
+  afterAll(() => {
+    server.close()
+    cached.close()
+  })
+})

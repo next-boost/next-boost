@@ -32,4 +32,10 @@ describe('payload encode/decode', () => {
     const payload = Buffer.from('hello world')
     expect(() => decodePayload(payload)).toThrow('Invalid payload')
   })
+
+  it('undefined payload', () => {
+    const rv = decodePayload(undefined)
+    expect(rv.headers).toEqual({})
+    expect(rv.body).toEqual(Buffer.alloc(0))
+  })
 })

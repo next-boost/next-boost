@@ -1,8 +1,10 @@
 import { gzipSync } from 'zlib'
+
 import { RequestListener } from '../src/renderer'
 
 export default async function init(): Promise<RequestListener> {
   const cb: RequestListener = (req, res) => {
+    if (!req.url) return res.end()
     if (req.url.startsWith('/params')) {
       res.write('params')
     }

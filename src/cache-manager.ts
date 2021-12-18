@@ -39,7 +39,7 @@ export async function serveCache(cache: Cache, key: string, forced: boolean): Pr
       return { status: 'stale', payload }
     }
   } catch (e) {
-    console.error(`${key} cache error: ${e.message}`)
+    console.error(`${key} cache error`, e)
     return { status: 'miss' }
   }
 }

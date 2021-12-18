@@ -35,7 +35,7 @@
   },
   "devDependencies": {
     "@next-boost/hybrid-disk-cache": "^0.3.0",
-    "@next-boost/redis-cache": "^0.2.0",
+    "@next-boost/redis-cache": "^0.3.0",
     "@swc/cli": "^0.1.51",
     "@swc/core": "^1.2.109",
     "@swc/jest": "^0.2.5",
@@ -45,6 +45,7 @@
     "@types/uuid": "^8.3.0",
     "@typescript-eslint/eslint-plugin": "^4.1.1",
     "@typescript-eslint/parser": "^4.1.1",
+    "dotenv": "^10.0.0",
     "eslint": "^7.9.0",
     "jest": "^27.0.1",
     "regenerator-runtime": "^0.13.9",
