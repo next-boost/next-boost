@@ -11,6 +11,11 @@ type CHReturn = ReturnType<typeof CachedHandler> extends Promise<infer T> ? T : 
 describe('cached handler', () => {
   let cached: CHReturn
   let server: http.Server
+  let hit = 0
+  let miss = 0
+  let stale = 0
+  let force = 0
+  let bypass = 0
 
   beforeAll(async () => {
     const script = require.resolve('./mock')
@@ -28,11 +33,19 @@ describe('cached handler', () => {
       },
     )
     await cached.cache.del('payload:/hello')
+    await cached.cache.del('payload:/hello-304')
+    await cached.cache.del('payload:/hello-zip')
     server = new http.Server(cached.handler)
   })
 
   it('404 with wrong method', done => {
-    request(server).delete('/404').expect(404).end(done)
+    request(server)
+      .delete('/404')
+      .expect(404)
+      .end(() => {
+        bypass++
+        done()
+      })
   })
 
   it('miss /hello', done => {
@@ -40,6 +53,7 @@ describe('cached handler', () => {
       .get('/hello')
       .end((_, res) => {
         expect(res.text).toEqual('hello')
+        miss++
         done()
       })
   })
@@ -49,6 +63,7 @@ describe('cached handler', () => {
       .get('/hello')
       .end((_, res) => {
         expect(res.text).toEqual('hello')
+        hit++
         done()
       })
   })
@@ -58,6 +73,7 @@ describe('cached handler', () => {
       .head('/hello')
       .end((_, res) => {
         expect(res.status).toEqual(200)
+        hit++
         done()
       })
   })
@@ -68,6 +84,7 @@ describe('cached handler', () => {
         .get('/hello')
         .end((_, res) => {
           expect(res.text).toEqual('hello')
+          stale++
           done()
         })
     }, 2000)
@@ -78,15 +95,17 @@ describe('cached handler', () => {
       .get('/hello')
       .end((_, res) => {
         expect(res.text).toEqual('hello')
+        stale++
         done()
       })
   })
 
-  it('update /hello-304', done => {
+  it('miss /hello-304', done => {
     request(server)
       .get('/hello-304')
       .end((_, res) => {
         expect(res.status).toEqual(304)
+        miss++
         done()
       })
   })
@@ -96,6 +115,7 @@ describe('cached handler', () => {
       .get('/hello-zip')
       .end((_, res) => {
         expect(res.text).toEqual('hello')
+        miss++
         done()
       })
   })
@@ -105,6 +125,7 @@ describe('cached handler', () => {
       .get('/unknown')
       .end((_, res) => {
         expect(res.status).toEqual(404)
+        bypass++
         done()
       })
   })
@@ -115,6 +136,7 @@ describe('cached handler', () => {
       .set('x-next-boost', 'update')
       .end((_, res) => {
         expect(res.text).toEqual('hello')
+        force++
         done()
       })
   })
@@ -125,6 +147,7 @@ describe('cached handler', () => {
       .set('x-next-boost', 'update')
       .end((_, res) => {
         expect(res.status).toEqual(200)
+        force++
         done()
       })
   })
@@ -134,7 +157,11 @@ describe('cached handler', () => {
       .get('/__nextboost_metrics')
       .end((_, res) => {
         expect(res.status).toEqual(200)
-        expect(res.text).toMatch(/next_boost_requests_total{status='hit'}/)
+        expect(res.text).toContain(`next_boost_requests_total{status='hit'} ${hit}`)
+        expect(res.text).toContain(`next_boost_requests_total{status='stale'} ${stale}`)
+        expect(res.text).toContain(`next_boost_requests_total{status='miss'} ${miss}`)
+        expect(res.text).toContain(`next_boost_requests_total{status='force'} ${force}`)
+        expect(res.text).toContain(`next_boost_requests_total{status='bypass'} ${bypass}`)
         done()
       })
   })
