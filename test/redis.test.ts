@@ -53,6 +53,7 @@ describe('cached handler', () => {
       .get('/hello')
       .end((_, res) => {
         expect(res.text).toEqual('hello')
+        expect(res.header['x-next-boost-status']).toEqual('miss')
         miss++
         done()
       })
@@ -63,6 +64,7 @@ describe('cached handler', () => {
       .get('/hello')
       .end((_, res) => {
         expect(res.text).toEqual('hello')
+        expect(res.header['x-next-boost-status']).toEqual('hit')
         hit++
         done()
       })
@@ -73,6 +75,7 @@ describe('cached handler', () => {
       .head('/hello')
       .end((_, res) => {
         expect(res.status).toEqual(200)
+        expect(res.header['x-next-boost-status']).toEqual('hit')
         hit++
         done()
       })
@@ -84,6 +87,7 @@ describe('cached handler', () => {
         .get('/hello')
         .end((_, res) => {
           expect(res.text).toEqual('hello')
+          expect(res.header['x-next-boost-status']).toEqual('stale')
           stale++
           done()
         })
@@ -95,6 +99,7 @@ describe('cached handler', () => {
       .get('/hello')
       .end((_, res) => {
         expect(res.text).toEqual('hello')
+        expect(res.header['x-next-boost-status']).toEqual('stale')
         stale++
         done()
       })
@@ -105,6 +110,7 @@ describe('cached handler', () => {
       .get('/hello-304')
       .end((_, res) => {
         expect(res.status).toEqual(304)
+        expect(res.header['x-next-boost-status']).toEqual('miss')
         miss++
         done()
       })

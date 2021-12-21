@@ -44,6 +44,7 @@ const wrap: WrappedHandler = (cache, conf, renderer, next, metrics) => {
     const { matched, ttl } = matchRules(conf, req)
     if (!matched) {
       metrics.inc('bypass')
+      res.setHeader('x-next-boost-status', 'bypass')
       return next(req, res)
     }
 
@@ -51,6 +52,7 @@ const wrap: WrappedHandler = (cache, conf, renderer, next, metrics) => {
     const forced = req.headers['x-next-boost'] === 'update' // forced
 
     const state = await serveCache(cache, key, forced)
+    res.setHeader('x-next-boost-status', state.status)
     metrics.inc(state.status)
 
     if (state.status === 'stale' || state.status === 'hit' || state.status === 'fulfill') {
