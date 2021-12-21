@@ -1,5 +1,6 @@
 import { IncomingMessage } from 'http'
 
+import { Metrics } from './metrics'
 import { PagePayload } from './payload'
 import Renderer, { RequestListener } from './renderer'
 
@@ -12,8 +13,6 @@ export type Cache = {
   get(key: string, defaultValue?: Buffer): Promise<Buffer | undefined>
   has(key: string): Promise<CacheStatus>
   del(key: string): Promise<void>
-  inc?(label: string): Promise<void>
-  count?(labels: Array<string>): Promise<number[]>
 }
 
 export type CacheAdapter = {
@@ -30,7 +29,7 @@ export interface HandlerConfig {
   cacheAdapter?: CacheAdapter
   paramFilter?: ParamFilter
   cacheKey?: CacheKeyBuilder
-  exporter?: boolean
+  metrics?: boolean
 }
 
 export interface URLCacheRule {
@@ -46,6 +45,7 @@ export type WrappedHandler = (
   conf: HandlerConfig,
   renderer: RendererType,
   plainHandler: RequestListener,
+  metrics: Metrics,
 ) => RequestListener
 
 export type State =

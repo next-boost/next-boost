@@ -4,7 +4,6 @@ import request from 'supertest'
 import { Adapter } from '@next-boost/redis-cache'
 
 import CachedHandler from '../src/handler'
-import { STATUSES } from '../src/stats'
 import { sleep } from '../src/utils'
 
 type CHReturn = ReturnType<typeof CachedHandler> extends Promise<infer T> ? T : never
@@ -25,13 +24,10 @@ describe('cached handler', () => {
           ttl: 10,
           tbd: 20,
         }),
-        exporter: true,
+        metrics: true,
       },
     )
     await cached.cache.del('payload:/hello')
-    for (const s of STATUSES) {
-      await cached.cache.del('stats:' + s)
-    }
     server = new http.Server(cached.handler)
   })
 
@@ -135,7 +131,7 @@ describe('cached handler', () => {
 
   it('have stats', done => {
     request(server)
-      .get('/__nextboost_exporter')
+      .get('/__nextboost_metrics')
       .end((_, res) => {
         expect(res.status).toEqual(200)
         expect(res.text).toMatch(/next_boost_requests_total{status='hit'}/)

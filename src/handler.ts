@@ -2,9 +2,9 @@ import { IncomingMessage } from 'http'
 import { gzipSync } from 'zlib'
 
 import { lock, send, serveCache, unlock } from './cache-manager'
+import { forMetrics, Metrics, serveMetrics } from './metrics'
 import { encodePayload } from './payload'
 import Renderer, { InitArgs } from './renderer'
-import { isReqForStats, serveStats } from './stats'
 import { CacheAdapter, HandlerConfig, WrappedHandler } from './types'
 import { filterUrl, isZipped, log, mergeConfig, serve } from './utils'
 
@@ -35,17 +35,15 @@ function matchRules(conf: HandlerConfig, req: IncomingMessage) {
  *
  * @returns a request listener to use in http server
  */
-const wrap: WrappedHandler = (cache, conf, renderer, next) => {
+const wrap: WrappedHandler = (cache, conf, renderer, next, metrics) => {
   return async (req, res) => {
-    // check if API for stats available
-    const stats = cache.inc && cache.count
-    if (conf.exporter && stats && isReqForStats(req)) return serveStats(cache, res)
+    if (conf.metrics && forMetrics(req)) return serveMetrics(metrics, res)
 
     req.url = filterUrl(req.url ?? '', conf.paramFilter)
     const key = conf.cacheKey ? conf.cacheKey(req) : req.url
     const { matched, ttl } = matchRules(conf, req)
     if (!matched) {
-      if (cache.inc) await cache.inc('stats:bypass')
+      metrics.inc('bypass')
       return next(req, res)
     }
 
@@ -53,7 +51,7 @@ const wrap: WrappedHandler = (cache, conf, renderer, next) => {
     const forced = req.headers['x-next-boost'] === 'update' // forced
 
     const state = await serveCache(cache, key, forced)
-    if (cache.inc) await cache.inc('stats:' + state.status)
+    metrics.inc(state.status)
 
     if (state.status === 'stale' || state.status === 'hit' || state.status === 'fulfill') {
       send(state.payload, res)
@@ -106,9 +104,11 @@ export default async function CachedHandler(args: InitArgs, options?: HandlerCon
   await renderer.init(args)
   const plain = await require(args.script).default(args)
 
+  const metrics = new Metrics()
+
   // init the child process for revalidate and cache purge
   return {
-    handler: wrap(cache, conf, renderer, plain),
+    handler: wrap(cache, conf, renderer, plain, metrics),
     cache,
     close: async () => {
       renderer.kill()
