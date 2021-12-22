@@ -9,6 +9,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "next-boost": "^0.7.2"
+    "@next-boost/next-boost": "latest",
+    "@next-boost/hybrid-disk-cache": "latest"
   }
 }
