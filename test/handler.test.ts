@@ -28,6 +28,7 @@ describe('cached handler', () => {
       .get('/hello')
       .end((_, res) => {
         expect(res.text).toEqual('hello')
+        expect(res.header['cache-control']).toEqual('public, max-age=0.5, must-revalidate')
         done()
       })
   })
@@ -37,6 +38,7 @@ describe('cached handler', () => {
       .get('/hello')
       .end((_, res) => {
         expect(res.text).toEqual('hello')
+        expect(res.header['cache-control']).toEqual('public, max-age=0.5, must-revalidate')
         done()
       })
   })
