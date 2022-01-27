@@ -69,7 +69,9 @@ const wrap: WrappedHandler = (cache, conf, renderer, next, metrics) => {
 
       const args = { path: req.url, headers: req.headers, method: req.method }
       const rv = await renderer.render(args)
-      if (ttl > 0 && rv.statusCode === 200) rv.headers['cache-control'] = `public, max-age=${ttl}, must-revalidate`
+      if (ttl && rv.statusCode === 200 && conf.cacheControl) {
+        rv.headers['cache-control'] = conf.cacheControl(req, ttl)
+      }
       // rv.body is a Buffer in JSON format: { type: 'Buffer', data: [...] }
       const body = Buffer.from(rv.body)
       // stale has been served

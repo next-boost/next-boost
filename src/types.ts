@@ -22,6 +22,8 @@ export type CacheAdapter = {
 
 export type URLCacheRuleResolver = (req: IncomingMessage) => number
 
+export type CacheControlBuilder = (req: IncomingMessage, ttl: number) => string
+
 export interface HandlerConfig {
   filename?: string // config file's path
   quiet?: boolean
@@ -29,6 +31,7 @@ export interface HandlerConfig {
   cacheAdapter?: CacheAdapter
   paramFilter?: ParamFilter
   cacheKey?: CacheKeyBuilder
+  cacheControl?: CacheControlBuilder
   metrics?: boolean
 }
 
