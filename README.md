@@ -23,10 +23,10 @@ $ yarn add @next-boost/hybrid-disk-cache # simple site with disk cache
 - Small footprint with [less than 200 LOC](https://coveralls.io/github/@next-boost/next-boost?branch=master)
 - Used in production with 300K pages cached
 - 2 official cache adapters
-  - [@next-boost/redis-cache](https://github.com/@next-boost/redis-cache)
+  - [@next-boost/redis-cache](https://github.com/next-boost/redis-cache)
     - For using within a cluster
     - Check `.next-boost.redis.js` for sample config
-  - [@next-boost/hybrid-disk-cache](https://github.com/@next-boost/hybrid-disk-cache)
+  - [@next-boost/hybrid-disk-cache](https://github.com/next-boost/hybrid-disk-cache)
     - no memory capacity limit, and works great on cheap VPSs
     - great performance, and may even have [better performace than pure file system](https://www.sqlite.org/fasterthanfs.html) cache
     - portability on major platforms
