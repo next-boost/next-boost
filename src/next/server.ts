@@ -16,7 +16,7 @@ const serve = async (argv: Argv) => {
   const grace = (argv['--grace'] as number) || 30000
 
   const script = require.resolve('./init')
-  const rendererArgs = { script, args: { dir, dev: false } }
+  const rendererArgs = { script, args: { dir, dev: false, hostname, port } }
   const cached = await CachedHandler(rendererArgs, { quiet })
 
   const server = new http.Server(cached.handler)
