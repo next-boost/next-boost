@@ -3,10 +3,7 @@ import Multee from 'multee'
 
 const { createHandler, start } = Multee('worker')
 
-export type RequestListener = (
-  req: http.IncomingMessage,
-  res: http.ServerResponse,
-) => Promise<void> | void
+export type RequestListener = (req: http.IncomingMessage, res: http.ServerResponse) => void
 
 type RenderOptions = {
   path?: string
