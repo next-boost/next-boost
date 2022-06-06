@@ -104,7 +104,7 @@ export default async function CachedHandler(args: InitArgs, options?: HandlerCon
 
   const renderer = Renderer()
   await renderer.init(args)
-  const plain = await require(args.script).default(args)
+  const plain = await require(args.script).default(args.args)
 
   const metrics = new Metrics()
 
